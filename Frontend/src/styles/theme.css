@@ -1,0 +1,205 @@
+@custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light *));
+
+:root.dark {
+  --font-size: 16px;
+
+  /* Custom dark mode colors for subscription manager */
+  --bg-base: #282727;
+  --bg-surface: #3a3938;
+  --color-primary-action: #454c3d;
+  --text-primary: #e8e8e8;
+  --text-secondary: #b4b4b4;
+  --text-muted: #8a8a8a;
+
+  /* Default theme variables */
+  --background: var(--bg-base);
+  --foreground: var(--text-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-surface);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--color-primary-action);
+  --primary-foreground: var(--text-primary);
+  --secondary: var(--bg-surface);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-surface);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--color-primary-action);
+  --accent-foreground: var(--text-primary);
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: var(--bg-surface);
+  --input-background: var(--bg-surface);
+  --switch-background: var(--color-primary-action);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: var(--color-primary-action);
+  --chart-1: #646cff;
+  --chart-2: #52b788;
+  --chart-3: #ffd166;
+  --chart-4: #ef476f;
+  --chart-5: #118ab2;
+  --radius: 0.5rem;
+  --sidebar: var(--bg-surface);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--color-primary-action);
+  --sidebar-primary-foreground: var(--text-primary);
+  --sidebar-accent: var(--color-primary-action);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: var(--color-primary-action);
+}
+
+:root.light {
+  --font-size: 16px;
+
+  /* Custom light mode colors - complementary palette */
+  --bg-base: #f5f5f4;
+  --bg-surface: #ffffff;
+  --color-primary-action: #6b7d5c;
+  --text-primary: #1a1a1a;
+  --text-secondary: #3a3a3a;
+  --text-muted: #5a5a5a;
+
+  /* Default theme variables */
+  --background: var(--bg-base);
+  --foreground: var(--text-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-surface);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--color-primary-action);
+  --primary-foreground: #ffffff;
+  --secondary: #e8e8e7;
+  --secondary-foreground: var(--text-primary);
+  --muted: #f0f0ef;
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--color-primary-action);
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: var(--bg-surface);
+  --input-background: var(--bg-surface);
+  --switch-background: var(--color-primary-action);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: var(--color-primary-action);
+  --chart-1: #646cff;
+  --chart-2: #52b788;
+  --chart-3: #f59e0b;
+  --chart-4: #ef476f;
+  --chart-5: #118ab2;
+  --radius: 0.5rem;
+  --sidebar: var(--bg-surface);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--color-primary-action);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--color-primary-action);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(0, 0, 0, 0.1);
+  --sidebar-ring: var(--color-primary-action);
+}
+
+:root {
+  --font-size: 16px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--text-secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
