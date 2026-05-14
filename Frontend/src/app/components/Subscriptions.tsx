@@ -1,5 +1,6 @@
 import { Plus, Edit, Trash2, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { SubscriptionForm } from "./SubscriptionForm";
 import { useThemeColors } from "../hooks/useThemeColors";
 
@@ -14,6 +15,8 @@ const categories = ["Todas", ...mockCategories];
 
 export function Subscriptions() {
   const colors = useThemeColors();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -117,6 +120,20 @@ export function Subscriptions() {
     setEditingSubscription(null);
     setIsFormOpen(true);
   };
+
+  // Open edit form when navigated here with state.editId
+  useEffect(() => {
+    const editId = (location && (location as any).state && (location as any).state.editId) || null;
+    if (editId) {
+      const sub = subscriptions.find((s) => s.id === editId);
+      if (sub) {
+        setEditingSubscription(sub);
+        setIsFormOpen(true);
+        // clear navigation state to avoid reopening
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [location, subscriptions, navigate]);
 
   const filteredSubscriptions = subscriptions.filter(sub => {
     const matchesSearch = sub.name.toLowerCase().includes(searchTerm.toLowerCase());

@@ -62,7 +62,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
           >
-            <X className="w-5 h-5 text-foreground" />
+            <X className="w-5 h-5 text-foreground" style={{ color: '#ffffff' }} />
           </button>
         </div>
 

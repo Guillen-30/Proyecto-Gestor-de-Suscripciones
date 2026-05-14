@@ -1,4 +1,5 @@
 import { X, Calendar, DollarSign, CreditCard, Repeat, Tag, FileText } from "lucide-react";
+import { useNavigate } from "react-router";
 import { useThemeColors } from "../hooks/useThemeColors";
 
 interface SubscriptionDetailsModalProps {
@@ -20,6 +21,7 @@ interface SubscriptionDetailsModalProps {
 
 export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: SubscriptionDetailsModalProps) {
   const colors = useThemeColors();
+  const navigate = useNavigate();
   if (!isOpen || !subscription) return null;
 
   const getStatusColor = (status: string) => {
@@ -94,9 +96,9 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:opacity-80 transition-all"
-            style={{ backgroundColor: colors.primaryAction }}
+            style={{ backgroundColor: colors.primaryAction}}
           >
-            <X className="w-5 h-5 text-foreground" />
+            <X className="w-5 h-5 text-foreground" style={{ color: '#ffffff' }}/>
           </button>
         </div>
 
@@ -110,16 +112,16 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
               borderColor: colors.border
             }}
           >
-            <p className="text-sm text-foreground/80 mb-2">Costo de Suscripción</p>
+            <p className="text-sm text-[#FFFFFF]/80 mb-2">Costo de Suscripción</p>
             <div className="flex items-baseline justify-center gap-2">
-              <span className="text-4xl text-foreground">
+              <span className="text-4xl text-[#FFFFFF] color-[#FFFFFF]">
                 ${subscription.cost.toFixed(2)}
               </span>
-              <span className="text-xl text-foreground/80">
+              <span className="text-xl text-[#FFFFFF]/80">
                 {subscription.currency || "USD"}
               </span>
             </div>
-            <p className="text-sm text-foreground/70 mt-2">
+            <p className="text-sm text-[#FFFFFF]/70 mt-2">
               {getCycleLabel(subscription.billingCycle)}
             </p>
           </div>
@@ -227,6 +229,10 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
             <button
               className="flex-1 px-6 py-3 rounded-lg transition-all hover:opacity-90"
               style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
+              onClick={() => {
+                onClose();
+                navigate('/suscripciones', { state: { editId: subscription.id } });
+              }}
             >
               Editar Suscripción
             </button>
