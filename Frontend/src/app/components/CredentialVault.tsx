@@ -107,10 +107,10 @@ export function CredentialVault() {
           borderColor: colors.border
         }}
       >
-        <Shield className="w-6 h-6 text-foreground flex-shrink-0 mt-1" />
+        <Shield className="w-6 h-6 text-foreground flex-shrink-0 mt-1" style={{ color: '#ffffff' }}/>
         <div>
-          <h3 className="text-lg text-foreground mb-2">Almacenamiento Seguro</h3>
-          <p className="text-sm text-foreground/90">
+          <h3 className="text-lg text-foreground mb-2" style={{ color: '#ffffff' }}>Almacenamiento Seguro </h3>
+          <p className="text-sm text-foreground/90" style={{ color: '#ffffff' }}>
             Todas tus credenciales están almacenadas de forma segura con encriptación de nivel empresarial. 
             Nunca se guardan en texto plano y solo tú tienes acceso a esta información.
           </p>
@@ -137,7 +137,8 @@ export function CredentialVault() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Buscar credencial..."
-          className="w-full px-4 py-3 rounded-lg bg-background text-foreground placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-4 py-3 rounded-lg bg-background text-foreground placeholder-secondary border border-textPrimary focus:outline-none focus:ring-2 focus:ring-primary"
+
         />
         <Search className="absolute right-4 top-4 w-5 h-5 text-secondary" />
       </div>
@@ -159,7 +160,7 @@ export function CredentialVault() {
                   className="w-12 h-12 rounded-lg flex items-center justify-center"
                   style={{ backgroundColor: colors.primaryAction }}
                 >
-                  <Lock className="w-6 h-6 text-foreground" />
+                  <Lock className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }}/>
                 </div>
                 <div>
                   <h4 className="text-lg text-foreground">{cred.service}</h4>
@@ -200,7 +201,7 @@ export function CredentialVault() {
                     className="p-1.5 rounded hover:opacity-80 transition-all"
                     style={{ backgroundColor: colors.primaryAction }}
                   >
-                    <Copy className="w-4 h-4 text-foreground" />
+                    <Copy className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }}/>
                   </button>
                 </div>
               </div>
@@ -222,9 +223,9 @@ export function CredentialVault() {
                       style={{ backgroundColor: colors.primaryAction }}
                     >
                       {visiblePasswords.has(cred.id) ? (
-                        <EyeOff className="w-4 h-4 text-foreground" />
+                        <EyeOff className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }} />
                       ) : (
-                        <Eye className="w-4 h-4 text-foreground" />
+                        <Eye className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }} />
                       )}
                     </button>
                     <button
@@ -232,7 +233,7 @@ export function CredentialVault() {
                       className="p-1.5 rounded hover:opacity-80 transition-all"
                       style={{ backgroundColor: colors.primaryAction }}
                     >
-                      <Copy className="w-4 h-4 text-foreground" />
+                      <Copy className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }} />
                     </button>
                   </div>
                 </div>

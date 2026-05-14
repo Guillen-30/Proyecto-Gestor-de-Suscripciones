@@ -136,7 +136,7 @@ export function Dashboard() {
               className="w-12 h-12 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: colors.primaryAction }}
             >
-              <DollarSign className="w-6 h-6 text-foreground" />
+              <DollarSign className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }}/>
             </div>
           </div>
         </div>
@@ -157,7 +157,7 @@ export function Dashboard() {
               className="w-12 h-12 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: colors.primaryAction }}
             >
-              <TrendingUp className="w-6 h-6 text-foreground" />
+              <TrendingUp className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }}/>
             </div>
           </div>
         </div>
@@ -179,7 +179,7 @@ export function Dashboard() {
               className="w-12 h-12 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: colors.primaryAction }}
             >
-              <Calendar className="w-6 h-6 text-foreground" />
+              <Calendar className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }} />
             </div>
           </div>
         </div>
@@ -200,7 +200,7 @@ export function Dashboard() {
               className="w-12 h-12 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: colors.primaryAction }}
             >
-              <AlertCircle className="w-6 h-6 text-foreground" />
+              <AlertCircle className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }} />
             </div>
           </div>
         </div>
@@ -236,6 +236,10 @@ export function Dashboard() {
                   borderRadius: '8px',
                   color: colors.textPrimary
                 }}
+                labelStyle={{ color: colors.textPrimary }}
+                itemStyle={{ color: colors.textPrimary }}
+                wrapperStyle={{ color: colors.textPrimary }}
+                cursor={{ fill: colors.border, opacity: 1 }}
               />
               <Bar dataKey="amount" fill={colors.primaryAction} radius={[8, 8, 0, 0]} />
             </BarChart>

@@ -32,6 +32,7 @@ export function AccountSettings() {
           <div>
             <label className="text-sm mb-2 block" style={{ color: 'var(--text-secondary)' }}>Correo Electrónico</label>
             <input
+              readOnly
               type="email"
               defaultValue="usuario@email.com"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 bg-background text-foreground border"
@@ -242,15 +243,6 @@ export function AccountSettings() {
               borderColor: theme === 'dark' ? '#ef476f' : '#dc2626',
               color: theme === 'dark' ? '#ef476f' : '#dc2626',
               backgroundColor: 'transparent'
-            }}
-          >
-            Exportar Todos los Datos
-          </button>
-          <button
-            className="px-6 py-2.5 rounded-lg transition-all hover:opacity-90"
-            style={{
-              backgroundColor: theme === 'dark' ? '#ef476f' : '#dc2626',
-              color: '#ffffff'
             }}
           >
             Eliminar Cuenta Permanentemente

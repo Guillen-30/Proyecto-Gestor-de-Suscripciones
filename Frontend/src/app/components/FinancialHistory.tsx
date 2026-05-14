@@ -82,7 +82,7 @@ export function FinancialHistory() {
               className="w-12 h-12 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: colors.primaryAction }}
             >
-              <DollarSign className="w-6 h-6 text-foreground" />
+              <DollarSign className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }}/>
             </div>
           </div>
         </div>
@@ -113,7 +113,7 @@ export function FinancialHistory() {
               className="w-12 h-12 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: colors.primaryAction }}
             >
-              <Calendar className="w-6 h-6 text-foreground" />
+              <Calendar className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }} />
             </div>
           </div>
         </div>
@@ -135,7 +135,7 @@ export function FinancialHistory() {
               className="w-12 h-12 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: colors.primaryAction }}
             >
-              <TrendingUp className="w-6 h-6 text-foreground" />
+              <TrendingUp className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }} />
             </div>
           </div>
         </div>
@@ -171,11 +171,12 @@ export function FinancialHistory() {
                   borderRadius: '8px',
                   color: colors.textPrimary
                 }}
+                itemStyle={{ color: colors.textPrimary }}
               />
               <Line 
                 type="monotone" 
                 dataKey="amount" 
-                stroke={colors.primaryAction} 
+                stroke={colors.textMuted} 
                 strokeWidth={2}
                 dot={{ fill: colors.primaryAction, r: 4 }}
                 activeDot={{ r: 6 }}
@@ -200,7 +201,7 @@ export function FinancialHistory() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
@@ -216,6 +217,7 @@ export function FinancialHistory() {
                   borderRadius: '8px',
                   color: colors.textPrimary
                 }}
+                itemStyle={{ color: colors.textPrimary }}
               />
               <Legend
                 wrapperStyle={{ color: colors.textSecondary }}
