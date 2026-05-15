@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import { Home, CreditCard, Clock, Lock, Settings, Bell, Plus, User, FolderOpen, Wallet, LogOut } from "lucide-react";
 import { useState } from "react";
 import { NotificationsModal } from "./NotificationsModal";
+import { AccountModal } from "./AccountModal";
 import { SubscriptionForm } from "./SubscriptionForm";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -18,6 +19,7 @@ export function Layout() {
   const { theme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSubscriptionForm, setShowSubscriptionForm] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
@@ -122,6 +124,7 @@ export function Layout() {
             <button
               className="p-2 rounded-lg transition-all hover:opacity-80"
               style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
+              onClick={() => setShowAccountModal(true)}
             >
               <User className="w-5 h-5" />
             </button>
@@ -138,6 +141,13 @@ export function Layout() {
       <NotificationsModal 
         isOpen={showNotifications} 
         onClose={() => setShowNotifications(false)} 
+      />
+      <AccountModal
+        isOpen={showAccountModal}
+        onClose={() => setShowAccountModal(false)}
+        onNavigate={(path) => navigate(path)}
+        onLogout={handleLogout}
+        user={{ name: 'Usuario Demo', email: 'demo@example.com' }}
       />
       <SubscriptionForm
         isOpen={showSubscriptionForm}
