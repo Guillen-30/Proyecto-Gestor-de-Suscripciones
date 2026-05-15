@@ -90,9 +90,9 @@ export function PaymentMethods() {
                   style={{ backgroundColor: colors.primaryAction }}
                 >
                   {method.type.includes("Tarjeta") ? (
-                    <CreditCard className="w-6 h-6 text-foreground" />
+                    <CreditCard className="w-6 h-6 text-foreground" style={{ color: "#FFFFFF" }}/>
                   ) : (
-                    <Wallet className="w-6 h-6 text-foreground" />
+                    <Wallet className="w-6 h-6 text-foreground" style={{ color: "#FFFFFF" }} />
                   )}
                 </div>
                 <div className="min-w-0">

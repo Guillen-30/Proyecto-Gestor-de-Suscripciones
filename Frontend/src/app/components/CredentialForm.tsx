@@ -71,7 +71,7 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
           >
-            <X className="w-5 h-5 text-foreground" aria-hidden="true" />
+            <X className="w-5 h-5 text-foreground" aria-hidden="true" style={{ color: "#FFFFFF" }} />
           </button>
         </div>
 
@@ -174,7 +174,7 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
             <button
               type="submit"
               className="flex-1 px-6 py-3 rounded-lg transition-all hover:opacity-90"
-              style={{ backgroundColor: colors.primaryAction, color: colors.textPrimary }}
+              style={{ backgroundColor: colors.primaryAction, color:"#FFFFFF" }}
             >
               {editData ? "Guardar Cambios" : "Agregar Credencial"}
             </button>
