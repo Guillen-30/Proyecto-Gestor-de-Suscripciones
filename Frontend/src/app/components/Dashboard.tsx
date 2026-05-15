@@ -9,6 +9,7 @@ const mockSubscriptions = [
   {
     id: 1,
     name: "Netflix",
+    imageUrl: "https://placehold.co/80x80/E50914/FFFFFF?text=N",
     cost: 15.99,
     currency: "USD",
     billingDate: "2026-04-15",
@@ -22,6 +23,7 @@ const mockSubscriptions = [
   {
     id: 2,
     name: "Spotify",
+    imageUrl: "https://placehold.co/80x80/1DB954/FFFFFF?text=S",
     cost: 9.99,
     currency: "USD",
     billingDate: "2026-04-10",
@@ -35,6 +37,7 @@ const mockSubscriptions = [
   {
     id: 3,
     name: "Adobe Creative Cloud",
+    imageUrl: "https://placehold.co/80x80/FF0000/FFFFFF?text=A",
     cost: 52.99,
     currency: "USD",
     billingDate: "2026-04-20",
@@ -48,6 +51,7 @@ const mockSubscriptions = [
   {
     id: 4,
     name: "Amazon Prime",
+    imageUrl: "https://placehold.co/80x80/FF9900/FFFFFF?text=P",
     cost: 14.99,
     currency: "USD",
     billingDate: "2026-04-08",
@@ -61,6 +65,7 @@ const mockSubscriptions = [
   {
     id: 5,
     name: "GitHub Pro",
+    imageUrl: "https://placehold.co/80x80/24292E/FFFFFF?text=G",
     cost: 7.00,
     currency: "USD",
     billingDate: "2026-04-12",
@@ -74,6 +79,7 @@ const mockSubscriptions = [
   {
     id: 6,
     name: "Dropbox",
+    imageUrl: "https://placehold.co/80x80/0061FF/FFFFFF?text=D",
     cost: 11.99,
     currency: "USD",
     billingDate: "2026-04-18",
@@ -102,6 +108,16 @@ const upcomingPayments = [
   { service: "Spotify", date: "2026-04-10", amount: 9.99, daysLeft: 5 },
   { service: "GitHub Pro", date: "2026-04-12", amount: 7.00, daysLeft: 7 },
 ];
+
+const categoryColors: Record<string, string> = {
+  Entretenimiento: "#f59e0b",
+  Música: "#10b981",
+  Productividad: "#3b82f6",
+  Desarrollo: "#8b5cf6",
+  Almacenamiento: "#06b6d4",
+};
+
+const getCategoryColor = (category: string) => categoryColors[category] || "#6b7d5c";
 
 export function Dashboard() {
   const colors = useThemeColors();
@@ -302,13 +318,19 @@ export function Dashboard() {
               onClick={() => handleSubscriptionClick(subscription)}
             >
               <div className="flex items-start justify-between mb-4">
-                <div 
-                  className="w-12 h-12 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: subscription.color }}
+                <div
+                  className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center"
+                  style={{ backgroundColor: getCategoryColor(subscription.category) }}
                 >
-                  <span className="text-white text-xl">
-                    {subscription.name.charAt(0)}
-                  </span>
+                  {subscription.imageUrl ? (
+                    <img
+                      src={subscription.imageUrl}
+                      alt={subscription.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white text-xl">{subscription.name.charAt(0)}</span>
+                  )}
                 </div>
                 <span 
                   className="px-3 py-1 rounded-full text-xs"

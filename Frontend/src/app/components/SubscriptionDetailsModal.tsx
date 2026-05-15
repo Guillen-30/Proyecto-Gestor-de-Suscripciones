@@ -1,6 +1,16 @@
-import { X, Calendar, DollarSign, CreditCard, Repeat, Tag, FileText } from "lucide-react";
+import { X, Calendar, CreditCard, Repeat, Tag, FileText } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useThemeColors } from "../hooks/useThemeColors";
+
+const categoryColors: Record<string, string> = {
+  Entretenimiento: "#f59e0b",
+  Música: "#10b981",
+  Productividad: "#3b82f6",
+  Desarrollo: "#8b5cf6",
+  Almacenamiento: "#06b6d4",
+};
+
+const getCategoryColor = (category: string) => categoryColors[category] || "#6b7d5c";
 
 interface SubscriptionDetailsModalProps {
   isOpen: boolean;
@@ -8,6 +18,7 @@ interface SubscriptionDetailsModalProps {
   subscription: {
     id: number;
     name: string;
+    imageUrl?: string;
     cost: number;
     currency?: string;
     billingDate: string;
@@ -74,12 +85,20 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
           style={{ borderColor: colors.border }}
         >
           <div className="flex items-center gap-4">
-            <div 
-              className="w-14 h-14 rounded-lg flex items-center justify-center text-2xl"
-              style={{ backgroundColor: colors.primaryAction }}
-            >
-              {subscription.name.charAt(0)}
-            </div>
+              <div
+                className="w-14 h-14 rounded-lg overflow-hidden flex items-center justify-center text-2xl"
+                style={{ backgroundColor: getCategoryColor(subscription.category) }}
+              >
+                {subscription.imageUrl ? (
+                  <img
+                    src={subscription.imageUrl}
+                    alt={subscription.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  subscription.name.charAt(0)
+                )}
+              </div>
             <div>
               <h2 className="text-2xl text-foreground">{subscription.name}</h2>
               <span 

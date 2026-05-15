@@ -11,7 +11,25 @@ const mockPaymentMethods = [
   { id: 3, alias: "PayPal" },
 ];
 
+const categoryColors: Record<string, string> = {
+  Entretenimiento: "#f59e0b",
+  Música: "#10b981",
+  Productividad: "#3b82f6",
+  Desarrollo: "#8b5cf6",
+  Almacenamiento: "#06b6d4",
+};
+
+const getCategoryColor = (category: string) => categoryColors[category] || "#6b7d5c";
+
 const categories = ["Todas", ...mockCategories];
+
+const truncateNotes = (notes: string, maxLength = 64) => {
+  if (notes.length <= maxLength) {
+    return notes;
+  }
+
+  return `${notes.slice(0, maxLength - 1)}…`;
+};
 
 export function Subscriptions() {
   const colors = useThemeColors();
@@ -25,6 +43,7 @@ export function Subscriptions() {
     {
       id: 1,
       name: "Netflix",
+      imageUrl: "https://placehold.co/80x80/E50914/FFFFFF?text=N",
       cost: 15.99,
       currency: "USD",
       billingDate: "2026-04-15",
@@ -37,6 +56,7 @@ export function Subscriptions() {
     {
       id: 2,
       name: "Spotify",
+      imageUrl: "https://placehold.co/80x80/1DB954/FFFFFF?text=S",
       cost: 9.99,
       currency: "USD",
       billingDate: "2026-04-10",
@@ -49,6 +69,7 @@ export function Subscriptions() {
     {
       id: 3,
       name: "Adobe Creative Cloud",
+      imageUrl: "https://placehold.co/80x80/FF0000/FFFFFF?text=A",
       cost: 52.99,
       currency: "USD",
       billingDate: "2026-04-20",
@@ -61,6 +82,7 @@ export function Subscriptions() {
     {
       id: 4,
       name: "Amazon Prime",
+      imageUrl: "https://placehold.co/80x80/FF9900/FFFFFF?text=P",
       cost: 14.99,
       currency: "USD",
       billingDate: "2026-04-08",
@@ -73,6 +95,7 @@ export function Subscriptions() {
     {
       id: 5,
       name: "GitHub Pro",
+      imageUrl: "https://placehold.co/80x80/24292E/FFFFFF?text=G",
       cost: 7.00,
       currency: "USD",
       billingDate: "2026-04-12",
@@ -85,6 +108,7 @@ export function Subscriptions() {
     {
       id: 6,
       name: "Dropbox",
+      imageUrl: "https://placehold.co/80x80/0061FF/FFFFFF?text=D",
       cost: 11.99,
       currency: "USD",
       billingDate: "2026-04-18",
@@ -184,8 +208,8 @@ export function Subscriptions() {
       <div 
         className="rounded-lg border overflow-hidden"
         style={{ 
-          backgroundColor: colors.bgSurface, borderColor: colors.border,
-          borderColor: 'rgba(255, 255, 255, 0.1)'
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          backgroundColor: colors.bgSurface,
         }}
       >
         <div className="overflow-x-auto">
@@ -211,15 +235,23 @@ export function Subscriptions() {
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-10 h-10 rounded-lg flex items-center justify-center"
-                        style={{ backgroundColor: colors.primaryAction }}
+                      <div
+                        className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center"
+                        style={{ backgroundColor: getCategoryColor(sub.category) }}
                       >
-                        <span className="text-foreground">{sub.name.charAt(0)}</span>
+                        {sub.imageUrl ? (
+                          <img
+                            src={sub.imageUrl}
+                            alt={sub.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-foreground">{sub.name.charAt(0)}</span>
+                        )}
                       </div>
                       <div>
                         <p className="text-foreground">{sub.name}</p>
-                        <p className="text-xs text-muted-foreground">{sub.notes}</p>
+                        <p className="text-xs text-muted-foreground">{truncateNotes(sub.notes)}</p>
                       </div>
                     </div>
                   </td>
@@ -272,8 +304,8 @@ export function Subscriptions() {
         <div 
           className="text-center py-12 rounded-lg border"
           style={{ 
-            backgroundColor: colors.bgSurface, borderColor: colors.border,
-            borderColor: 'rgba(255, 255, 255, 0.1)'
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            backgroundColor: colors.bgSurface,
           }}
         >
           <p className="text-secondary">No se encontraron suscripciones</p>

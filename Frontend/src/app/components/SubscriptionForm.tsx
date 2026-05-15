@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useThemeColors } from "../hooks/useThemeColors";
 
 interface SubscriptionFormProps {
@@ -13,7 +13,10 @@ interface SubscriptionFormProps {
 
 export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories, paymentMethods }: SubscriptionFormProps) {
   const colors = useThemeColors();
-  const [formData, setFormData] = useState(editData || {
+  const createInitialFormData = (data?: any) => data ? {
+    ...data,
+    nextBillingDate: data.nextBillingDate || data.billingDate || "",
+  } : {
     name: "",
     category: "",
     cost: "",
@@ -22,8 +25,15 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
     nextBillingDate: "",
     paymentMethod: "",
     status: "Activa",
+    imageUrl: "",
     notes: "",
-  });
+  };
+
+  const [formData, setFormData] = useState(createInitialFormData(editData));
+
+  useEffect(() => {
+    setFormData(createInitialFormData(editData));
+  }, [editData, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,6 +195,18 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
                 <option value="Pausada">Pausada</option>
                 <option value="Cancelada">Cancelada</option>
               </select>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="text-sm text-secondary mb-2 block">Imagen de la Suscripción (URL)</label>
+              <input
+                type="url"
+                value={formData.imageUrl || ""}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                placeholder="https://..."
+                className="w-full px-4 py-3 rounded-lg outline-none"
+                style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
+              />
             </div>
 
             <div className="md:col-span-2">
