@@ -26,6 +26,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
     paymentMethod: "",
     status: "Activa",
     imageUrl: "",
+    imageAlt: "",
     notes: "",
   };
 
@@ -51,6 +52,10 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}>
       <div 
+        id="subscription-form-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="subscription-form-title"
         className="w-full max-w-2xl rounded-lg border max-h-[90vh] overflow-y-auto"
         style={{ 
           backgroundColor: colors.bgSurface,
@@ -64,11 +69,13 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             borderColor: 'rgba(255, 255, 255, 0.1)'
           }}
         >
-          <h2 className="text-2xl text-foreground">
+          <h2 id="subscription-form-title" className="text-2xl text-foreground">
             {editData ? "Editar Suscripción" : "Nueva Suscripción"}
           </h2>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Cerrar formulario"
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
           >
@@ -81,6 +88,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             <div className="md:col-span-2">
               <label className="text-sm text-secondary mb-2 block">Nombre del Servicio *</label>
               <input
+                aria-label="Nombre del servicio"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -94,6 +102,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             <div>
               <label className="text-sm text-secondary mb-2 block">Categoría *</label>
               <select
+                aria-label="Categoría"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 required
@@ -110,6 +119,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             <div>
               <label className="text-sm text-secondary mb-2 block">Ciclo de Facturación *</label>
               <select
+                aria-label="Ciclo de facturación"
                 value={formData.billingCycle}
                 onChange={(e) => setFormData({ ...formData, billingCycle: e.target.value })}
                 required
@@ -129,6 +139,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             <div>
               <label className="text-sm text-secondary mb-2 block">Costo *</label>
               <input
+                aria-label="Costo"
                 type="number"
                 step="0.01"
                 value={formData.cost}
@@ -143,6 +154,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             <div>
               <label className="text-sm text-secondary mb-2 block">Moneda</label>
               <select
+                aria-label="Moneda"
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg outline-none"
@@ -158,6 +170,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             <div>
               <label className="text-sm text-secondary mb-2 block">Próxima Fecha de Pago *</label>
               <input
+                aria-label="Próxima fecha de pago"
                 type="date"
                 value={formData.nextBillingDate}
                 onChange={(e) => setFormData({ ...formData, nextBillingDate: e.target.value })}
@@ -170,6 +183,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             <div>
               <label className="text-sm text-secondary mb-2 block">Método de Pago *</label>
               <select
+                aria-label="Método de pago"
                 value={formData.paymentMethod}
                 onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                 required
@@ -186,6 +200,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             <div>
               <label className="text-sm text-secondary mb-2 block">Estado</label>
               <select
+                aria-label="Estado"
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg outline-none"
@@ -200,6 +215,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             <div className="md:col-span-2">
               <label className="text-sm text-secondary mb-2 block">Imagen de la Suscripción (URL)</label>
               <input
+                aria-label="Imagen de la suscripción (URL)"
                 type="url"
                 value={formData.imageUrl || ""}
                 onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
@@ -208,10 +224,26 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
                 style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
               />
             </div>
+            <div className="md:col-span-2">
+              <label className="text-sm text-secondary mb-2 block">Texto alternativo de la imagen</label>
+              <input
+                aria-label="Texto alternativo de la imagen"
+                type="text"
+                value={formData.imageAlt || ""}
+                onChange={(e) => setFormData({ ...formData, imageAlt: e.target.value })}
+                placeholder="Ej: Logo de Netflix"
+                className="w-full px-4 py-3 rounded-lg outline-none"
+                style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Se usa cuando la imagen se carga y para accesibilidad.
+              </p>
+            </div>
 
             <div className="md:col-span-2">
               <label className="text-sm text-secondary mb-2 block">Notas (Opcional)</label>
               <textarea
+                aria-label="Notas"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Información adicional sobre la suscripción..."
@@ -226,6 +258,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             <button
               type="button"
               onClick={onClose}
+              aria-label="Cancelar creación de suscripción"
               className="flex-1 px-6 py-3 rounded-lg border transition-all hover:opacity-80"
               style={{ borderColor: colors.border, color: colors.textSecondary }}
             >
@@ -233,6 +266,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             </button>
             <button
               type="submit"
+              aria-label={editData ? "Guardar cambios" : "Crear suscripción"}
               className="flex-1 px-6 py-3 rounded-lg transition-all hover:opacity-90"
               style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
             >

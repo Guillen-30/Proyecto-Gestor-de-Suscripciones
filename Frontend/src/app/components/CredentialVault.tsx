@@ -121,12 +121,14 @@ export function CredentialVault() {
       <div className="flex justify-between items-center">
         <h3 className="text-xl text-foreground">Credenciales Almacenadas</h3>
         <button
+          type="button"
           onClick={handleAddNew}
+          aria-labelledby="add-credential-label"
           className="px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all hover:opacity-90 whitespace-nowrap"
           style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
         >
-          <Plus className="w-5 h-5" />
-          Agregar Credencial
+          <Plus className="w-5 h-5" aria-hidden="true" />
+          <span id="add-credential-label">Agregar Credencial</span>
         </button>
       </div>
 
@@ -134,6 +136,7 @@ export function CredentialVault() {
       <div className="relative">
         <input
           type="text"
+          aria-label="Buscar credencial"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Buscar credencial..."
@@ -171,18 +174,22 @@ export function CredentialVault() {
               </div>
               <div className="flex items-center gap-2">
                 <button 
+                  type="button"
                   onClick={() => handleEdit(cred)}
+                  aria-label={`Editar ${cred.service}`}
                   className="p-2 rounded-lg hover:opacity-80 transition-all"
                   style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
                 >
-                  <Edit className="w-4 h-4" />
+                  <Edit className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button 
+                  type="button"
                   onClick={() => handleDelete(cred.id)}
+                  aria-label={`Eliminar ${cred.service}`}
                   className="p-2 rounded-lg hover:opacity-80 transition-all"
                   style={{ backgroundColor: colors.destructive, color: '#ffffff' }}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -197,11 +204,13 @@ export function CredentialVault() {
                 >
                   <span className="text-foreground">{cred.email}</span>
                   <button
+                    type="button"
                     onClick={() => copyToClipboard(cred.email)}
+                    aria-label="Copiar correo electrónico"
                     className="p-1.5 rounded hover:opacity-80 transition-all"
                     style={{ backgroundColor: colors.primaryAction }}
                   >
-                    <Copy className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }}/>
+                    <Copy className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }} aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -218,22 +227,26 @@ export function CredentialVault() {
                   </span>
                   <div className="flex items-center gap-2">
                     <button
+                      type="button"
                       onClick={() => togglePasswordVisibility(cred.id)}
+                      aria-label={visiblePasswords.has(cred.id) ? "Ocultar contraseña" : "Mostrar contraseña"}
                       className="p-1.5 rounded hover:opacity-80 transition-all"
                       style={{ backgroundColor: colors.primaryAction }}
                     >
                       {visiblePasswords.has(cred.id) ? (
-                        <EyeOff className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }} />
+                        <EyeOff className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }} aria-hidden="true" />
                       ) : (
-                        <Eye className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }} />
+                        <Eye className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }} aria-hidden="true" />
                       )}
                     </button>
                     <button
+                      type="button"
                       onClick={() => copyToClipboard("SuperSecurePass123!")}
+                      aria-label="Copiar contraseña"
                       className="p-1.5 rounded hover:opacity-80 transition-all"
                       style={{ backgroundColor: colors.primaryAction }}
                     >
-                      <Copy className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }} />
+                      <Copy className="w-4 h-4 text-foreground" style={{ color: '#ffffff' }} aria-hidden="true" />
                     </button>
                   </div>
                 </div>

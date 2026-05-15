@@ -61,12 +61,14 @@ export function PaymentMethods() {
           <p className="text-sm text-secondary mt-1">Gestiona los métodos de pago que usas para tus suscripciones</p>
         </div>
         <button
+          type="button"
           onClick={handleAddNew}
+          aria-labelledby="add-payment-method-label"
           className="px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all hover:opacity-90"
           style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
         >
-          <Plus className="w-5 h-5" />
-          Nuevo Método
+          <Plus className="w-5 h-5" aria-hidden="true" />
+          <span id="add-payment-method-label">Nuevo Método</span>
         </button>
       </div>
 
@@ -114,26 +116,32 @@ export function PaymentMethods() {
             <div className="flex gap-2">
               {!method.isDefault && (
                 <button
+                  type="button"
                   onClick={() => setDefault(method.id)}
+                  aria-label={`Establecer como predeterminado`}
                   className="flex-1 px-4 py-2 rounded-lg border transition-all hover:opacity-80 text-sm"
-                  style={{ borderColor: colors.primaryAction, color: colors.primaryAction }}
+                  style={{ borderColor: colors.textMuted, color: colors.textMuted }}
                 >
-                  Predeterminado
+                  Establecer como predeterminado
                 </button>
               )}
               <button
+                type="button"
                 onClick={() => handleEdit(method)}
+                aria-label={`Editar ${method.alias}`}
                 className="px-4 py-2 rounded-lg hover:opacity-80 transition-all"
                 style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
               >
-                <Edit className="w-4 h-4" />
+                <Edit className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
+                type="button"
                 onClick={() => handleDelete(method.id)}
+                aria-label={`Eliminar ${method.alias}`}
                 className="px-4 py-2 rounded-lg hover:opacity-80 transition-all"
                 style={{ backgroundColor: colors.destructive, color: '#ffffff' }}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
           </div>

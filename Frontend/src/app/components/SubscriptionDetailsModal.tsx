@@ -19,6 +19,7 @@ interface SubscriptionDetailsModalProps {
     id: number;
     name: string;
     imageUrl?: string;
+    imageAlt?: string;
     cost: number;
     currency?: string;
     billingDate: string;
@@ -42,9 +43,9 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
       case "Pausada":
         return "#ffd166";
       case "Cancelada":
-        return "#ef476f";
+        return "#E61445";
       default:
-        return "#8a8a8a";
+        return "#a8a8a8";
     }
   };
 
@@ -92,7 +93,7 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
                 {subscription.imageUrl ? (
                   <img
                     src={subscription.imageUrl}
-                    alt={subscription.name}
+                    alt={subscription.imageAlt || subscription.name}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -104,8 +105,8 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
               <span 
                 className="inline-block px-3 py-1 rounded-full text-sm mt-1"
                 style={{ 
-                  backgroundColor: getStatusColor(subscription.status) + '20',
-                  color: getStatusColor(subscription.status)
+                  backgroundColor: getStatusColor(subscription.status) + '20', // Adding transparency
+                  color: '#ffffff'
                 }}
               >
                 {subscription.status}
@@ -113,7 +114,9 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Cerrar detalles de suscripción"
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction}}
           >

@@ -55,11 +55,13 @@ export function PaymentMethodForm({ isOpen, onClose, onSave, editData }: Payment
             {editData ? "Editar Método de Pago" : "Nuevo Método de Pago"}
           </h2>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Cerrar registro de metodo de pago"
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
           >
-            <X className="w-5 h-5 text-foreground" />
+            <X className="w-5 h-5 text-foreground" aria-hidden="true" />
           </button>
         </div>
 
@@ -83,6 +85,7 @@ export function PaymentMethodForm({ isOpen, onClose, onSave, editData }: Payment
             <select
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              aria-label="Tipo de Método"
               required
               className="w-full px-4 py-3 rounded-lg outline-none"
               style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}

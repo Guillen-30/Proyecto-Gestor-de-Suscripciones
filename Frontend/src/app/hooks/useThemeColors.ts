@@ -12,7 +12,7 @@ export function useThemeColors() {
     textSecondary: 'var(--text-secondary)',
     textMuted: 'var(--text-muted)',
     border: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-    destructive: theme === 'dark' ? '#ef476f' : '#dc2626',
+    destructive: theme === 'dark' ? '#E61445' : '#dc2626',
     primaryForeground: theme === 'dark' ? '#e8e8e8' : '#ffffff',
   };
 }

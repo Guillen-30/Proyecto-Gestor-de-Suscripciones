@@ -1,4 +1,4 @@
-import { X, Bell, Calendar, AlertCircle, CheckCircle } from "lucide-react";
+import { X, Bell, Calendar, CheckCircle } from "lucide-react";
 import { useThemeColors } from "../hooks/useThemeColors";
 
 interface NotificationsModalProps {
@@ -48,6 +48,10 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end p-4" onClick={onClose}>
       <div
+        id="notifications-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="notifications-title"
         className="w-full max-w-md mt-16 mr-4 rounded-lg border shadow-2xl max-h-[80vh] overflow-hidden"
         style={{
           backgroundColor: colors.bgSurface,
@@ -64,12 +68,13 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
         >
           <div className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-foreground" />
-            <h2 className="text-xl text-foreground">Notificaciones</h2>
+            <h2 id="notifications-title" className="text-xl text-foreground">Notificaciones</h2>
           </div>
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
+            aria-label="Cerrar notificaciones"
           >
             <X className="w-5 h-5" style={{ color: colors.primaryForeground }} />
           </button>
@@ -124,7 +129,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
         >
           <button
             className="w-full py-2 text-sm transition-all hover:opacity-80"
-            style={{ color: colors.primaryAction }}
+            style={{ color: colors.textPrimary }}
           >
             Marcar todas como leídas
           </button>

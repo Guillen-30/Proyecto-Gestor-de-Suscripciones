@@ -17,6 +17,10 @@ export function AccountModal({ isOpen, onClose, onNavigate, onLogout, user }: Ac
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end p-4" onClick={onClose}>
       <div
+        id="account-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="account-title"
         className="w-full max-w-sm mt-16 mr-4 rounded-lg border shadow-2xl overflow-hidden"
         style={{
           backgroundColor: colors.bgSurface,
@@ -30,12 +34,13 @@ export function AccountModal({ isOpen, onClose, onNavigate, onLogout, user }: Ac
         >
           <div className="flex items-center gap-3">
             <UserIcon className="w-6 h-6 text-foreground" />
-            <h2 className="text-lg text-foreground">Cuenta</h2>
+            <h2 id="account-title" className="text-lg text-foreground">Cuenta</h2>
           </div>
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
+            aria-label="Cerrar cuenta"
           >
             <X className="w-5 h-5" style={{ color: colors.primaryForeground }} />
           </button>

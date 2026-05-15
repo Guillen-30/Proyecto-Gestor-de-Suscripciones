@@ -31,6 +31,21 @@ const truncateNotes = (notes: string, maxLength = 64) => {
   return `${notes.slice(0, maxLength - 1)}…`;
 };
 
+interface SubscriptionItem {
+  id: number;
+  name: string;
+  imageUrl: string;
+  imageAlt?: string;
+  cost: number;
+  currency: string;
+  billingDate: string;
+  billingCycle: string;
+  status: string;
+  category: string;
+  paymentMethod: string;
+  notes: string;
+}
+
 export function Subscriptions() {
   const colors = useThemeColors();
   const location = useLocation();
@@ -39,11 +54,12 @@ export function Subscriptions() {
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<any>(null);
-  const [subscriptions, setSubscriptions] = useState([
+  const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([
     {
       id: 1,
       name: "Netflix",
       imageUrl: "https://placehold.co/80x80/E50914/FFFFFF?text=N",
+      imageAlt: "Logo de Netflix",
       cost: 15.99,
       currency: "USD",
       billingDate: "2026-04-15",
@@ -57,6 +73,7 @@ export function Subscriptions() {
       id: 2,
       name: "Spotify",
       imageUrl: "https://placehold.co/80x80/1DB954/FFFFFF?text=S",
+      imageAlt: "Logo de Spotify",
       cost: 9.99,
       currency: "USD",
       billingDate: "2026-04-10",
@@ -70,6 +87,7 @@ export function Subscriptions() {
       id: 3,
       name: "Adobe Creative Cloud",
       imageUrl: "https://placehold.co/80x80/FF0000/FFFFFF?text=A",
+      imageAlt: "Logo de Adobe Creative Cloud",
       cost: 52.99,
       currency: "USD",
       billingDate: "2026-04-20",
@@ -83,6 +101,7 @@ export function Subscriptions() {
       id: 4,
       name: "Amazon Prime",
       imageUrl: "https://placehold.co/80x80/FF9900/FFFFFF?text=P",
+      imageAlt: "Logo de Amazon Prime",
       cost: 14.99,
       currency: "USD",
       billingDate: "2026-04-08",
@@ -96,6 +115,7 @@ export function Subscriptions() {
       id: 5,
       name: "GitHub Pro",
       imageUrl: "https://placehold.co/80x80/24292E/FFFFFF?text=G",
+      imageAlt: "Logo de GitHub Pro",
       cost: 7.00,
       currency: "USD",
       billingDate: "2026-04-12",
@@ -109,6 +129,7 @@ export function Subscriptions() {
       id: 6,
       name: "Dropbox",
       imageUrl: "https://placehold.co/80x80/0061FF/FFFFFF?text=D",
+      imageAlt: "Logo de Dropbox",
       cost: 11.99,
       currency: "USD",
       billingDate: "2026-04-18",
@@ -170,13 +191,14 @@ export function Subscriptions() {
       {/* Header Actions */}
       <div className="flex flex-col md:flex-row gap-4 justify-between">
         <div className="flex gap-4 flex-1">
-          <div 
+            <div 
             className="flex items-center gap-2 px-4 py-2 rounded-lg flex-1 max-w-md"
             style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}
           >
             <Search className="w-5 h-5 text-muted-foreground" />
             <input
               type="text"
+              aria-label="Buscar suscripción"
               placeholder="Buscar suscripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -184,6 +206,7 @@ export function Subscriptions() {
             />
           </div>
           <select
+            aria-label="Filtrar por categoría"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-2 rounded-lg outline-none text-foreground"
@@ -195,12 +218,14 @@ export function Subscriptions() {
           </select>
         </div>
         <button
+          type="button"
           onClick={handleAddNew}
+          aria-labelledby="new-subscription-label"
           className="px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all hover:opacity-90 whitespace-nowrap"
           style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
         >
-          <Plus className="w-5 h-5" />
-          Nueva Suscripción
+          <Plus className="w-5 h-5" aria-hidden="true" />
+          <span id="new-subscription-label">Nueva Suscripción</span>
         </button>
       </div>
 
@@ -242,7 +267,7 @@ export function Subscriptions() {
                         {sub.imageUrl ? (
                           <img
                             src={sub.imageUrl}
-                            alt={sub.name}
+                            alt={sub.imageAlt || sub.name}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -278,14 +303,18 @@ export function Subscriptions() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <button 
+                        type="button"
                         onClick={() => handleEdit(sub)}
+                        aria-label={`Editar ${sub.name}`}
                         className="p-2 rounded-lg hover:opacity-80 transition-all"
                         style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button 
+                        type="button"
                         onClick={() => handleDelete(sub.id)}
+                        aria-label={`Eliminar ${sub.name}`}
                         className="p-2 rounded-lg hover:opacity-80 transition-all"
                         style={{ backgroundColor: colors.destructive, color: '#ffffff' }}
                       >

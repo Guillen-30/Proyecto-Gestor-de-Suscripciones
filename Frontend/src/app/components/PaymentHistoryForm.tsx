@@ -51,6 +51,10 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}>
       <div 
+        id="payment-history-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="payment-history-title"
         className="w-full max-w-lg rounded-lg border"
         style={{ 
           backgroundColor: colors.bgSurface,
@@ -61,13 +65,15 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
           className="flex items-center justify-between p-6 border-b"
           style={{ borderColor: colors.border }}
         >
-          <h2 className="text-2xl text-foreground">Registrar Pago Manual</h2>
+          <h2 id="payment-history-title" className="text-2xl text-foreground">Registrar Pago Manual</h2>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Cerrar registro de pago"
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
           >
-            <X className="w-5 h-5 text-foreground" />
+            <X className="w-5 h-5 text-foreground" aria-hidden="true" />
           </button>
         </div>
 
@@ -75,6 +81,7 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
           <div>
             <label className="text-sm text-secondary mb-2 block">Fecha de Pago *</label>
             <input
+              aria-label="Fecha de pago"
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
@@ -87,6 +94,7 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
           <div>
             <label className="text-sm text-secondary mb-2 block">Suscripción *</label>
             <select
+              aria-label="Suscripción"
               value={formData.subscriptionId}
               onChange={(e) => setFormData({ ...formData, subscriptionId: e.target.value })}
               required
@@ -103,6 +111,7 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
           <div>
             <label className="text-sm text-secondary mb-2 block">Método de Pago *</label>
             <select
+              aria-label="Método de pago"
               value={formData.paymentMethodId}
               onChange={(e) => setFormData({ ...formData, paymentMethodId: e.target.value })}
               required

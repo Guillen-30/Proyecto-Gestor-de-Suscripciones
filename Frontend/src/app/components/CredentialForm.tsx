@@ -44,6 +44,10 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}>
       <div 
+        id="credential-form-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="credential-form-title"
         className="w-full max-w-2xl rounded-lg border max-h-[90vh] overflow-y-auto"
         style={{ 
           backgroundColor: colors.bgSurface,
@@ -57,15 +61,17 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
             borderColor: colors.border
           }}
         >
-          <h2 className="text-2xl text-foreground">
+          <h2 id="credential-form-title" className="text-2xl text-foreground">
             {editData ? "Editar Credencial" : "Nueva Credencial"}
           </h2>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Cerrar formulario de credencial"
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
           >
-            <X className="w-5 h-5 text-foreground" />
+            <X className="w-5 h-5 text-foreground" aria-hidden="true" />
           </button>
         </div>
 
@@ -123,9 +129,10 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
                 </button>
               </div>
             </div>

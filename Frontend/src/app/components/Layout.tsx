@@ -80,7 +80,7 @@ export function Layout() {
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:opacity-80"
-              style={{ backgroundColor: theme === 'dark' ? '#ef476f' : '#dc2626', color: '#ffffff' }}
+              style={{ backgroundColor: theme === 'dark' ? '#E61445' : '#dc2626', color: '#ffffff' }}
             >
               <LogOut className="w-5 h-5" />
               <span>Cerrar Sesión</span>
@@ -111,17 +111,28 @@ export function Layout() {
               Agregar Suscripción
             </button>
             <button
+              type="button"
               onClick={() => setShowNotifications(true)}
+              aria-label="Notificaciones"
+              aria-haspopup="dialog"
+              aria-expanded={showNotifications}
+              aria-controls="notifications-modal"
               className="p-2 rounded-lg relative transition-all hover:opacity-80"
               style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
             >
               <Bell className="w-5 h-5" />
               <span
                 className="absolute top-1 right-1 w-2 h-2 rounded-full"
-                style={{ backgroundColor: theme === 'dark' ? '#ef476f' : '#dc2626' }}
+                aria-hidden="true"
+                style={{ backgroundColor: theme === 'dark' ? '#E61445' : '#dc2626' }}
               />
             </button>
             <button
+              type="button"
+              aria-label="Cuenta"
+              aria-haspopup="dialog"
+              aria-expanded={showAccountModal}
+              aria-controls="account-modal"
               className="p-2 rounded-lg transition-all hover:opacity-80"
               style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
               onClick={() => setShowAccountModal(true)}

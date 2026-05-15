@@ -10,7 +10,7 @@
   --color-primary-action: #454c3d;
   --text-primary: #e8e8e8;
   --text-secondary: #b4b4b4;
-  --text-muted: #8a8a8a;
+  --text-muted: #a8a8a8;
 
   /* Default theme variables */
   --background: var(--bg-base);
@@ -39,7 +39,7 @@
   --chart-1: #646cff;
   --chart-2: #52b788;
   --chart-3: #ffd166;
-  --chart-4: #ef476f;
+  --chart-4: #E61445;
   --chart-5: #118ab2;
   --radius: 0.5rem;
   --sidebar: var(--bg-surface);
@@ -90,7 +90,7 @@
   --chart-1: #646cff;
   --chart-2: #52b788;
   --chart-3: #f59e0b;
-  --chart-4: #ef476f;
+  --chart-4: #E61445;
   --chart-5: #118ab2;
   --radius: 0.5rem;
   --sidebar: var(--bg-surface);

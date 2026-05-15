@@ -1,4 +1,4 @@
-import { User, Mail, Bell, Shield, Moon, Sun, Globe } from "lucide-react";
+import { User, Bell, Shield, Moon, Sun, Globe } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 
 export function AccountSettings() {
@@ -14,7 +14,7 @@ export function AccountSettings() {
         }}
       >
         <h3 className="text-lg text-foreground mb-6 flex items-center gap-2">
-          <User className="w-5 h-5" />
+          <User className="w-5 h-5" aria-hidden="true" />
           Información de Perfil
         </h3>
         <div className="space-y-4">
@@ -22,6 +22,7 @@ export function AccountSettings() {
             <label className="text-sm mb-2 block" style={{ color: 'var(--text-secondary)' }}>Nombre Completo</label>
             <input
               type="text"
+              aria-label="Nombre Completo"
               defaultValue="Usuario Demo"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 bg-background text-foreground border"
               style={{
@@ -34,6 +35,7 @@ export function AccountSettings() {
             <input
               readOnly
               type="email"
+              aria-label="Correo Electrónico"
               defaultValue="usuario@email.com"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 bg-background text-foreground border"
               style={{
@@ -43,6 +45,8 @@ export function AccountSettings() {
           </div>
           <div className="pt-2">
             <button
+              type="button"
+              aria-label="Guardar cambios"
               className="px-6 py-2.5 rounded-lg transition-all hover:opacity-90"
               style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
             >
@@ -60,7 +64,7 @@ export function AccountSettings() {
         }}
       >
         <h3 className="text-lg text-foreground mb-6 flex items-center gap-2">
-          <Bell className="w-5 h-5" />
+          <Bell className="w-5 h-5" aria-hidden="true" />
           Preferencias de Notificaciones
         </h3>
         <div className="space-y-4">
@@ -70,7 +74,7 @@ export function AccountSettings() {
               <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Recibe notificaciones 3 días antes de cada pago</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
+              <input type="checkbox" aria-label="Alertas de Próximos Pagos" defaultChecked className="sr-only peer" />
               <div
                 className="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"
                 style={{ backgroundColor: 'var(--color-primary-action)' }}
@@ -83,20 +87,7 @@ export function AccountSettings() {
               <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Recibe un resumen de tus gastos al final de cada mes</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
-              <div
-                className="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"
-                style={{ backgroundColor: 'var(--color-primary-action)' }}
-              />
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-foreground">Notificaciones por Email</p>
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Recibe alertas también por correo electrónico</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" />
+              <input type="checkbox" aria-label="Resumen Mensual" defaultChecked className="sr-only peer" />
               <div
                 className="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"
                 style={{ backgroundColor: 'var(--color-primary-action)' }}
@@ -114,7 +105,7 @@ export function AccountSettings() {
         }}
       >
         <h3 className="text-lg text-foreground mb-6 flex items-center gap-2">
-          <Shield className="w-5 h-5" />
+          <Shield className="w-5 h-5" aria-hidden="true" />
           Seguridad
         </h3>
         <div className="space-y-4">
@@ -122,6 +113,7 @@ export function AccountSettings() {
             <label className="text-sm mb-2 block" style={{ color: 'var(--text-secondary)' }}>Contraseña Actual</label>
             <input
               type="password"
+              aria-label="Contraseña Actual"
               placeholder="••••••••"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 bg-background text-foreground border"
               style={{
@@ -133,6 +125,7 @@ export function AccountSettings() {
             <label className="text-sm mb-2 block" style={{ color: 'var(--text-secondary)' }}>Nueva Contraseña</label>
             <input
               type="password"
+              aria-label="Nueva Contraseña"
               placeholder="••••••••"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 bg-background text-foreground border"
               style={{
@@ -144,6 +137,7 @@ export function AccountSettings() {
             <label className="text-sm mb-2 block" style={{ color: 'var(--text-secondary)' }}>Confirmar Nueva Contraseña</label>
             <input
               type="password"
+              aria-label="Confirmar Nueva Contraseña"
               placeholder="••••••••"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 bg-background text-foreground border"
               style={{
@@ -153,6 +147,8 @@ export function AccountSettings() {
           </div>
           <div className="pt-2">
             <button
+              type="button"
+              aria-label="Actualizar contraseña"
               className="px-6 py-2.5 rounded-lg transition-all hover:opacity-90"
               style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
             >
@@ -170,7 +166,7 @@ export function AccountSettings() {
         }}
       >
         <h3 className="text-lg text-foreground mb-6 flex items-center gap-2">
-          <Globe className="w-5 h-5" />
+          <Globe className="w-5 h-5" aria-hidden="true" />
           Preferencias Generales
         </h3>
         <div className="space-y-4">
@@ -178,6 +174,7 @@ export function AccountSettings() {
             <label className="text-sm mb-2 block" style={{ color: 'var(--text-secondary)' }}>Idioma</label>
             <select
               defaultValue="es"
+              aria-label="Idioma"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 bg-background text-foreground border"
               style={{
                 borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
@@ -192,6 +189,7 @@ export function AccountSettings() {
             <label className="text-sm mb-2 block" style={{ color: 'var(--text-secondary)' }}>Moneda Predeterminada</label>
             <select
               defaultValue="USD"
+              aria-label="Moneda predeterminada"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 bg-background text-foreground border"
               style={{
                 borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
@@ -211,14 +209,17 @@ export function AccountSettings() {
               </p>
             </div>
             <button
+              type="button"
               onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}
+              aria-pressed={theme === 'dark'}
               className="p-2 rounded-lg transition-all hover:opacity-90"
               style={{ backgroundColor: 'var(--color-primary-action)' }}
             >
               {theme === 'dark' ? (
-                <Moon className="w-5 h-5" style={{ color: '#e8e8e8' }} />
+                <Moon className="w-5 h-5" style={{ color: '#e8e8e8' }} aria-hidden="true" />
               ) : (
-                <Sun className="w-5 h-5" style={{ color: '#ffffff' }} />
+                <Sun className="w-5 h-5" style={{ color: '#ffffff' }} aria-hidden="true" />
               )}
             </button>
           </div>
@@ -229,19 +230,21 @@ export function AccountSettings() {
       <div
         className="p-6 rounded-lg border lg:col-span-2 bg-card"
         style={{
-          borderColor: theme === 'dark' ? '#ef476f' : '#dc2626'
+          borderColor: theme === 'dark' ? '#FF7A7A' : '#dc2626'
         }}
       >
-        <h3 className="text-lg mb-4" style={{ color: theme === 'dark' ? '#ef476f' : '#dc2626' }}>Zona de Peligro</h3>
+        <h3 className="text-lg mb-4" style={{ color: theme === 'dark' ? '#FF7A7A' : '#dc2626' }}>Zona de Peligro</h3>
         <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
           Las siguientes acciones son permanentes y no se pueden deshacer.
         </p>
         <div className="flex gap-3">
           <button
+            type="button"
+            aria-label="Eliminar cuenta permanentemente"
             className="px-6 py-2.5 rounded-lg border transition-all hover:opacity-90"
             style={{
-              borderColor: theme === 'dark' ? '#ef476f' : '#dc2626',
-              color: theme === 'dark' ? '#ef476f' : '#dc2626',
+              borderColor: theme === 'dark' ? '#FF7A7A' : '#dc2626',
+              color: theme === 'dark' ? '#FF7A7A' : '#dc2626',
               backgroundColor: 'transparent'
             }}
           >

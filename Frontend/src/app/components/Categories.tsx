@@ -86,7 +86,7 @@ export function Categories() {
           className="px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all hover:opacity-90"
           style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-5 h-5" aria-hidden="true" />
           Nueva Categoría
         </button>
       </div>
@@ -106,6 +106,7 @@ export function Categories() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Nombre de la categoría"
+              aria-label="Nombre de la categoría"
               autoFocus
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
               className="flex-1 px-4 py-3 rounded-lg outline-none"
@@ -159,6 +160,7 @@ export function Categories() {
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
+                  aria-label="Nombre de la categoría"
                   onKeyDown={(e) => e.key === "Enter" && handleEdit(category.id)}
                   autoFocus
                   className="w-full px-4 py-2 rounded-lg outline-none"
@@ -203,7 +205,7 @@ export function Categories() {
                       className="w-12 h-12 rounded-lg flex items-center justify-center"
                       style={{ backgroundColor: category.color }}
                     >
-                      <FolderOpen className="w-6 h-6 text-foreground" style={{ color: "#ffffff" }} />
+                      <FolderOpen className="w-6 h-6 text-foreground" style={{ color: "#ffffff" }} aria-hidden="true" />
                     </div>
                     <div>
                       <h4 className="text-lg text-foreground">{category.name}</h4>
@@ -219,7 +221,7 @@ export function Categories() {
                     className="flex-1 p-2 rounded-lg hover:opacity-80 transition-all flex items-center justify-center gap-2"
                     style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
                   >
-                    <Edit className="w-4 h-4" />
+                    <Edit className="w-4 h-4" aria-hidden="true" />
                     Editar
                   </button>
                   <button
@@ -229,7 +231,7 @@ export function Categories() {
                     style={{ backgroundColor: colors.destructive, color: "#ffffff" }}
                     title={category.subscriptionCount > 0 ? "No puedes eliminar una categoría con suscripciones" : ""}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                     Eliminar
                   </button>
                 </div>
@@ -247,7 +249,7 @@ export function Categories() {
             borderColor: colors.border,
           }}
         >
-          <FolderOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <FolderOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" aria-hidden="true" />
           <p className="text-secondary">No hay categorías creadas</p>
           <p className="text-sm text-muted-foreground mt-2">Crea tu primera categoría para organizar tus suscripciones</p>
         </div>

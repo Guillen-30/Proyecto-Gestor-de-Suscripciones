@@ -5,11 +5,28 @@ import { SubscriptionDetailsModal } from "./SubscriptionDetailsModal";
 import { useThemeColors } from "../hooks/useThemeColors";
 
 // Mock data for subscriptions
-const mockSubscriptions = [
+interface DashboardSubscription {
+  id: number;
+  name: string;
+  imageUrl: string;
+  imageAlt?: string;
+  cost: number;
+  currency: string;
+  billingDate: string;
+  billingCycle: string;
+  status: string;
+  category: string;
+  paymentMethod: string;
+  color: string;
+  notes: string;
+}
+
+const mockSubscriptions: DashboardSubscription[] = [
   {
     id: 1,
     name: "Netflix",
     imageUrl: "https://placehold.co/80x80/E50914/FFFFFF?text=N",
+    imageAlt: "Logo de Netflix",
     cost: 15.99,
     currency: "USD",
     billingDate: "2026-04-15",
@@ -24,6 +41,7 @@ const mockSubscriptions = [
     id: 2,
     name: "Spotify",
     imageUrl: "https://placehold.co/80x80/1DB954/FFFFFF?text=S",
+    imageAlt: "Logo de Spotify",
     cost: 9.99,
     currency: "USD",
     billingDate: "2026-04-10",
@@ -38,6 +56,7 @@ const mockSubscriptions = [
     id: 3,
     name: "Adobe Creative Cloud",
     imageUrl: "https://placehold.co/80x80/FF0000/FFFFFF?text=A",
+    imageAlt: "Logo de Adobe Creative Cloud",
     cost: 52.99,
     currency: "USD",
     billingDate: "2026-04-20",
@@ -52,6 +71,7 @@ const mockSubscriptions = [
     id: 4,
     name: "Amazon Prime",
     imageUrl: "https://placehold.co/80x80/FF9900/FFFFFF?text=P",
+    imageAlt: "Logo de Amazon Prime",
     cost: 14.99,
     currency: "USD",
     billingDate: "2026-04-08",
@@ -66,6 +86,7 @@ const mockSubscriptions = [
     id: 5,
     name: "GitHub Pro",
     imageUrl: "https://placehold.co/80x80/24292E/FFFFFF?text=G",
+    imageAlt: "Logo de GitHub Pro",
     cost: 7.00,
     currency: "USD",
     billingDate: "2026-04-12",
@@ -80,6 +101,7 @@ const mockSubscriptions = [
     id: 6,
     name: "Dropbox",
     imageUrl: "https://placehold.co/80x80/0061FF/FFFFFF?text=D",
+    imageAlt: "Logo de Dropbox",
     cost: 11.99,
     currency: "USD",
     billingDate: "2026-04-18",
@@ -146,7 +168,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Gasto Mensual Total</p>
-              <p className="text-3xl text-foreground">${totalMonthly.toFixed(2)}</p>
+              <h3 className="text-3xl text-foreground">${totalMonthly.toFixed(2)}</h3>
             </div>
             <div 
               className="w-12 h-12 rounded-lg flex items-center justify-center"
@@ -167,7 +189,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Suscripciones Activas</p>
-              <p className="text-3xl text-foreground">{activeCount}</p>
+              <h3 className="text-3xl text-foreground">{activeCount}</h3>
             </div>
             <div 
               className="w-12 h-12 rounded-lg flex items-center justify-center"
@@ -188,7 +210,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Próximo Pago</p>
-              <p className="text-3xl text-foreground">${upcomingPayments[0].amount}</p>
+              <h3 className="text-3xl text-foreground">${upcomingPayments[0].amount}</h3>
               <p className="text-xs text-muted-foreground mt-1">{upcomingPayments[0].service}</p>
             </div>
             <div 
@@ -210,7 +232,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Alertas Pendientes</p>
-              <p className="text-3xl text-foreground">{upcomingPayments.length}</p>
+              <h3 className="text-3xl text-foreground">{upcomingPayments.length}</h3>
             </div>
             <div 
               className="w-12 h-12 rounded-lg flex items-center justify-center"
@@ -287,7 +309,7 @@ export function Dashboard() {
                     className="px-2 py-1 rounded text-xs"
                     style={{
                       backgroundColor: payment.daysLeft <= 3 ? colors.destructive : colors.primaryAction,
-                      color: colors.primaryForeground
+                      color: '#FFFFFF'
                     }}
                   >
                     {payment.daysLeft} días
@@ -325,7 +347,7 @@ export function Dashboard() {
                   {subscription.imageUrl ? (
                     <img
                       src={subscription.imageUrl}
-                      alt={subscription.name}
+                      alt={subscription.imageAlt || subscription.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
