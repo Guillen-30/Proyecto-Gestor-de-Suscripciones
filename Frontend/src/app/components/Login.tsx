@@ -7,16 +7,50 @@ export function Login() {
   const navigate = useNavigate();
   const colors = useThemeColors();
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in real app, validate credentials
-    localStorage.setItem("isAuthenticated", "true");
-    navigate("/");
+    setError("");
+    setIsLoading(true);
+
+    try {
+      // NOTA: Cambia el puerto 3000 por el que le hayas puesto al user-api en tu .env
+      const response = await fetch("http://localhost:3000/api/users/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          correo: formData.email,       // Mapeo al nombre que espera el backend
+          contrasena: formData.password // Mapeo al nombre que espera el backend
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Si el backend responde con error (ej. 401 Credenciales inválidas)
+        console.error("Error en login:", error);
+        throw new Error(data.error || "Ocurrió un error al iniciar sesión");
+      }
+
+      // Guardamos el token JWT y los datos del usuario que devuelve el backend
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("isAuthenticated", "true");
+
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -35,6 +69,23 @@ export function Login() {
           <h1 className="text-3xl text-foreground mb-2">Bienvenido de Nuevo</h1>
           <p className="text-secondary">Inicia sesión en tu cuenta</p>
         </div>
+
+        {/* Mensaje de error dinámico */}
+        {error && (
+          <div
+            className="p-3 rounded-lg mb-4 text-sm text-center border"
+            style={{
+              backgroundColor:
+                colors.theme === "dark"
+                  ? "rgba(220,38,38,0.04)"
+                  : "rgba(220,38,38,0.04)",
+              color: colors.theme === "dark" ? "var(--color-destructive-foreground)" : colors.destructive,
+              borderColor: colors.destructive,
+            }}
+          >
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -92,11 +143,12 @@ export function Login() {
 
           <button
             type="submit"
-            className="w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-all hover:opacity-90"
+            disabled={isLoading}
+            className="w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50"
             style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
           >
             <LogIn className="w-5 h-5" />
-            Iniciar Sesión
+            {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </button>
         </form>
 
