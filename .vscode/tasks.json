@@ -1,0 +1,24 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "sqlproj: Build BaseDiseño",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"d:/ProyectoDiseño/BaseDiseño/BaseDiseño.sqlproj",
+				"/p:NetCoreBuild=true",
+				"/p:NETCoreTargetsPath=c:/Users/sguil/.vscode/extensions/ms-mssql.sql-database-projects-vscode-1.5.9/BuildDirectory",
+				"/p:SystemDacpacsLocation=c:/Users/sguil/.vscode/extensions/ms-mssql.sql-database-projects-vscode-1.5.9/BuildDirectory"
+			],
+			"problemMatcher": "$sqlproj-problem-matcher",
+			"isBackground": true,
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"detail": "Builds the BaseDiseño SQL project"
+		}
+	]
+}

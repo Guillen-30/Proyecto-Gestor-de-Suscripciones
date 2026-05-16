@@ -1,13 +1,11 @@
 require('dotenv').config();
 const express = require('express');
-const { connectRabbitMQ } = require('./config/rabbitmq');
 const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 app.use(express.json());
 
-// Iniciar RabbitMQ
-//connectRabbitMQ();
+
 
 // Rutas
 app.use('/api/users', userRoutes);

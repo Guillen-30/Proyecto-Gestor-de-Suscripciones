@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { connectDB, sql } = require('../config/db');
-const { publishEvent } = require('../config/rabbitmq');
+
 
 /**
  * Registra un nuevo usuario y su correo asociado
@@ -35,11 +35,7 @@ const registerUser = async (req, res) => {
         // Obtenemos el ID generado (ajusta según el nombre de columna que devuelva tu SP)
         const userId = result.recordset[0]?.ID || result.recordset[0]?.id;
 
-        // 4. Notificar evento a RabbitMQ
-        publishEvent('user_events', {
-            eventType: 'USER_CREATED',
-            data: { id: userId, nombre, correo }
-        });
+
 
         res.status(201).json({ message: 'Usuario registrado exitosamente', userId });
     } catch (error) {

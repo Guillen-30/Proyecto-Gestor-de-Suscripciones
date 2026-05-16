@@ -111,4 +111,20 @@ const updatePaymentMethod = async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar método de pago' });
     }
 };
-module.exports = { getPaymentMethods, createPaymentMethod, deletePaymentMethod, updatePaymentMethod };
+
+// ==========================================
+// Obtener tipos de métodos de pago disponibles (sin exponer IDs internos)
+// ==========================================
+const getPaymentTypes = async (req, res) => {
+    try {
+        const pool = await connectDB();
+        const result = await pool.request().query('SELECT ID, Descripcion FROM Tipo');
+        res.json({ tipos: result.recordset });
+    } catch (error) {
+        console.error('Error al obtener tipos de pago:', error);
+        res.status(500).json({ error: 'Error al obtener tipos de métodos de pago' });
+    }
+};
+
+
+module.exports = { getPaymentMethods, createPaymentMethod, deletePaymentMethod, updatePaymentMethod, getPaymentTypes };

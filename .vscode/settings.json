@@ -1,0 +1,50 @@
+{
+    "dataworkspace.excludedProjects": [
+        "BaseDiseño/BaseDiseño.sqlproj"
+    ],
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/flutter/ephemeral": true,
+        "**/Flutter/ephemeral": true,
+        "**/.symlinks": true,
+        "**/.plugin_symlinks": true,
+        "API Proyecto/subscriptions-api/node_modules": true,
+        "API Proyecto/subscriptions-api/pnpm-lock.yaml": true,
+        "API Proyecto/subscriptions-api/pnpm-workspace.yaml": true,
+        "API Proyecto/subscriptions-api/package-lock.json": true,
+        "API Proyecto/subscriptions-api/package.json": true,
+        "API Proyecto/user-api/node_modules": true,
+        "API Proyecto/user-api/package-lock.json": true,
+        "API Proyecto/user-api/package.json": true,
+        "API Proyecto/user-api/pnpm-lock.yaml": true,
+        "API Proyecto/user-api/pnpm-workspace.yaml": true,
+        "API Proyecto/Arquitectura_Información_-_Diseño_de_software (1).pdf": true,
+        "API Proyecto/.gitignore": true,
+        "API Proyecto/creacion_BD.sql": true,
+        "API Proyecto/Diagrama_de_arquitectura_-_Proyecto.pdf": true,
+        "API Proyecto/stored_procedures.sql": true,
+        "package-lock.json": true
+    },
+    "hide-files.files": [
+        "API Proyecto/subscriptions-api/node_modules",
+        "API Proyecto/subscriptions-api/pnpm-lock.yaml",
+        "API Proyecto/subscriptions-api/pnpm-workspace.yaml",
+        "API Proyecto/subscriptions-api/package-lock.json",
+        "API Proyecto/subscriptions-api/package.json",
+        "API Proyecto/user-api/node_modules",
+        "API Proyecto/user-api/package-lock.json",
+        "API Proyecto/user-api/package.json",
+        "API Proyecto/user-api/pnpm-lock.yaml",
+        "API Proyecto/user-api/pnpm-workspace.yaml",
+        "API Proyecto/Arquitectura_Información_-_Diseño_de_software (1).pdf",
+        "API Proyecto/.gitignore",
+        "API Proyecto/creacion_BD.sql",
+        "API Proyecto/Diagrama_de_arquitectura_-_Proyecto.pdf",
+        "API Proyecto/stored_procedures.sql",
+        "package-lock.json"
+    ]
+}
