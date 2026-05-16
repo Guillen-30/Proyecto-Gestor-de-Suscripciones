@@ -1,15 +1,8 @@
-import { Plus, Edit, Trash2, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { SubscriptionForm } from "./SubscriptionForm";
 import { useThemeColors } from "../hooks/useThemeColors";
-
-const mockCategories = ["Entretenimiento", "Música", "Productividad", "Desarrollo", "Almacenamiento"];
-const mockPaymentMethods = [
-  { id: 1, alias: "Tarjeta Visa *1234" },
-  { id: 2, alias: "Tarjeta Master *5678" },
-  { id: 3, alias: "PayPal" },
-];
 
 const categoryColors: Record<string, string> = {
   Entretenimiento: "#f59e0b",
@@ -19,32 +12,13 @@ const categoryColors: Record<string, string> = {
   Almacenamiento: "#06b6d4",
 };
 
-const getCategoryColor = (category: string) => categoryColors[category] || "#6b7d5c";
+const getCategoryColor = (category?: string) => category ? categoryColors[category] || "#6b7d5c" : "#6b7d5c";
 
-const categories = ["Todas", ...mockCategories];
-
-const truncateNotes = (notes: string, maxLength = 64) => {
-  if (notes.length <= maxLength) {
-    return notes;
-  }
-
+const truncateNotes = (notes?: string, maxLength = 64) => {
+  if (!notes) return "";
+  if (notes.length <= maxLength) return notes;
   return `${notes.slice(0, maxLength - 1)}…`;
 };
-
-interface SubscriptionItem {
-  id: number;
-  name: string;
-  imageUrl: string;
-  imageAlt?: string;
-  cost: number;
-  currency: string;
-  billingDate: string;
-  billingCycle: string;
-  status: string;
-  category: string;
-  paymentMethod: string;
-  notes: string;
-}
 
 export function Subscriptions() {
   const colors = useThemeColors();
@@ -54,100 +28,95 @@ export function Subscriptions() {
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<any>(null);
-  const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([
-    {
-      id: 1,
-      name: "Netflix",
-      imageUrl: "https://placehold.co/80x80/E50914/FFFFFF?text=N",
-      imageAlt: "Logo de Netflix",
-      cost: 15.99,
-      currency: "USD",
-      billingDate: "2026-04-15",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Entretenimiento",
-      paymentMethod: "Tarjeta Visa *1234",
-      notes: "Plan Premium - 4 pantallas",
-    },
-    {
-      id: 2,
-      name: "Spotify",
-      imageUrl: "https://placehold.co/80x80/1DB954/FFFFFF?text=S",
-      imageAlt: "Logo de Spotify",
-      cost: 9.99,
-      currency: "USD",
-      billingDate: "2026-04-10",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Música",
-      paymentMethod: "Tarjeta Master *5678",
-      notes: "Plan Individual",
-    },
-    {
-      id: 3,
-      name: "Adobe Creative Cloud",
-      imageUrl: "https://placehold.co/80x80/FF0000/FFFFFF?text=A",
-      imageAlt: "Logo de Adobe Creative Cloud",
-      cost: 52.99,
-      currency: "USD",
-      billingDate: "2026-04-20",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Productividad",
-      paymentMethod: "Tarjeta Visa *1234",
-      notes: "Todas las aplicaciones",
-    },
-    {
-      id: 4,
-      name: "Amazon Prime",
-      imageUrl: "https://placehold.co/80x80/FF9900/FFFFFF?text=P",
-      imageAlt: "Logo de Amazon Prime",
-      cost: 14.99,
-      currency: "USD",
-      billingDate: "2026-04-08",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Entretenimiento",
-      paymentMethod: "Tarjeta Visa *1234",
-      notes: "Envío gratis + Prime Video",
-    },
-    {
-      id: 5,
-      name: "GitHub Pro",
-      imageUrl: "https://placehold.co/80x80/24292E/FFFFFF?text=G",
-      imageAlt: "Logo de GitHub Pro",
-      cost: 7.00,
-      currency: "USD",
-      billingDate: "2026-04-12",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Desarrollo",
-      paymentMethod: "Tarjeta Master *5678",
-      notes: "Repositorios privados ilimitados",
-    },
-    {
-      id: 6,
-      name: "Dropbox",
-      imageUrl: "https://placehold.co/80x80/0061FF/FFFFFF?text=D",
-      imageAlt: "Logo de Dropbox",
-      cost: 11.99,
-      currency: "USD",
-      billingDate: "2026-04-18",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Almacenamiento",
-      paymentMethod: "PayPal",
-      notes: "2TB de almacenamiento",
-    },
-  ]);
 
-  const handleSaveSubscription = (subscription: any) => {
-    if (editingSubscription) {
-      setSubscriptions(subscriptions.map(s => s.id === subscription.id ? subscription : s));
-    } else {
-      setSubscriptions([...subscriptions, subscription]);
+  // Estados para conectar con el backend
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [catalogs, setCatalogs] = useState({
+    categorias: [], metodosPago: [], ciclosFacturacion: [], estados: []
+  });
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const API_BASE_URL = "http://localhost:3001/api"; // Asegúrate del puerto y prefijo
+
+  const fetchInitialData = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const headers = { "Authorization": `Bearer ${token}` };
+
+      // Hacemos ambas peticiones en paralelo (Lista y Catálogos)
+      const [subsRes, catsRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/subscriptions`, { headers }),
+        fetch(`${API_BASE_URL}/catalogs/subscription-form`, { headers })
+      ]);
+      
+      if (!subsRes.ok || !catsRes.ok) throw new Error("Error al cargar los datos del servidor");
+      
+      const subsData = await subsRes.json();
+      const catsData = await catsRes.json();
+      
+      setSubscriptions(subsData.suscripciones || []);
+      setCatalogs(catsData);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-    setEditingSubscription(null);
+  };
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("¿Estás seguro de eliminar esta suscripción?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/subscriptions/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Error al eliminar la suscripción");
+      }
+      
+      setSubscriptions(subscriptions.filter(s => s.id !== id));
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleSaveSubscription = async (payload: any) => {
+    try {
+      const token = localStorage.getItem("token");
+      const isEdit = !!editingSubscription;
+      const url = isEdit ? `${API_BASE_URL}/subscriptions/${editingSubscription.id}` : `${API_BASE_URL}/subscriptions`;
+      
+      const res = await fetch(url, {
+        method: isEdit ? "PUT" : "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Error al guardar la suscripción");
+      }
+
+      // Si fue exitoso, recargamos la tabla desde la BD para tener los datos actualizados
+      await fetchInitialData();
+      setIsFormOpen(false);
+      setEditingSubscription(null);
+    } catch (err: any) {
+      alert(err.message);
+    }
   };
 
   const handleEdit = (subscription: any) => {
@@ -155,50 +124,47 @@ export function Subscriptions() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm("¿Estás seguro de eliminar esta suscripción?")) {
-      setSubscriptions(subscriptions.filter(s => s.id !== id));
-    }
-  };
-
   const handleAddNew = () => {
     setEditingSubscription(null);
     setIsFormOpen(true);
   };
 
-  // Open edit form when navigated here with state.editId
-  useEffect(() => {
-    const editId = (location && (location as any).state && (location as any).state.editId) || null;
-    if (editId) {
-      const sub = subscriptions.find((s) => s.id === editId);
-      if (sub) {
-        setEditingSubscription(sub);
-        setIsFormOpen(true);
-        // clear navigation state to avoid reopening
-        navigate(location.pathname, { replace: true, state: {} });
-      }
-    }
-  }, [location, subscriptions, navigate]);
+  const realCategories = ["Todas", ...Array.from(new Set(subscriptions.map(s => s.categoryName).filter(Boolean)))];
 
   const filteredSubscriptions = subscriptions.filter(sub => {
-    const matchesSearch = sub.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "Todas" || sub.category === selectedCategory;
+    const matchesSearch = sub.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "Todas" || sub.categoryName === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-muted-foreground" style={{ color: colors.primaryAction }} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded-lg m-6 text-center">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header Actions */}
       <div className="flex flex-col md:flex-row gap-4 justify-between">
         <div className="flex gap-4 flex-1">
-            <div 
+          <div 
             className="flex items-center gap-2 px-4 py-2 rounded-lg flex-1 max-w-md"
             style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}
           >
             <Search className="w-5 h-5 text-muted-foreground" />
             <input
               type="text"
-              aria-label="Buscar suscripción"
               placeholder="Buscar suscripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -206,37 +172,29 @@ export function Subscriptions() {
             />
           </div>
           <select
-            aria-label="Filtrar por categoría"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-2 rounded-lg outline-none text-foreground"
             style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}
           >
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
+            {realCategories.map(cat => (
+              <option key={cat as string} value={cat as string}>{cat as string}</option>
             ))}
           </select>
         </div>
         <button
           type="button"
           onClick={handleAddNew}
-          aria-labelledby="new-subscription-label"
           className="px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all hover:opacity-90 whitespace-nowrap"
           style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
         >
-          <Plus className="w-5 h-5" aria-hidden="true" />
-          <span id="new-subscription-label">Nueva Suscripción</span>
+          <Plus className="w-5 h-5" />
+          Nueva Suscripción
         </button>
       </div>
 
       {/* Subscriptions Table */}
-      <div 
-        className="rounded-lg border overflow-hidden"
-        style={{ 
-          borderColor: 'rgba(255, 255, 255, 0.1)',
-          backgroundColor: colors.bgSurface,
-        }}
-      >
+      <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'rgba(255, 255, 255, 0.1)', backgroundColor: colors.bgSurface }}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -246,7 +204,7 @@ export function Subscriptions() {
                 <th className="text-left px-6 py-4 text-secondary font-medium">Costo</th>
                 <th className="text-left px-6 py-4 text-secondary font-medium">Ciclo</th>
                 <th className="text-left px-6 py-4 text-secondary font-medium">Próximo Pago</th>
-                <th className="text-left px-6 py-4 text-secondary font-medium">Método de Pago</th>
+                <th className="text-left px-6 py-4 text-secondary font-medium">Método</th>
                 <th className="text-left px-6 py-4 text-secondary font-medium">Estado</th>
                 <th className="text-left px-6 py-4 text-secondary font-medium">Acciones</th>
               </tr>
@@ -262,16 +220,12 @@ export function Subscriptions() {
                     <div className="flex items-center gap-3">
                       <div
                         className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center"
-                        style={{ backgroundColor: getCategoryColor(sub.category) }}
+                        style={{ backgroundColor: getCategoryColor(sub.categoryName) }}
                       >
                         {sub.imageUrl ? (
-                          <img
-                            src={sub.imageUrl}
-                            alt={sub.imageAlt || sub.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={sub.imageUrl} alt={sub.imageAlt || sub.name} className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-foreground">{sub.name.charAt(0)}</span>
+                          <span className="text-white">{sub.name ? sub.name.charAt(0) : '?'}</span>
                         )}
                       </div>
                       <div>
@@ -280,22 +234,19 @@ export function Subscriptions() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-secondary">{sub.category}</td>
+                  <td className="px-6 py-4 text-secondary">{sub.categoryName || 'N/A'}</td>
                   <td className="px-6 py-4 text-foreground">
-                    ${sub.cost} <span className="text-muted-foreground">{sub.currency}</span>
+                    ${sub.cost.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 text-secondary">{sub.billingCycle}</td>
                   <td className="px-6 py-4 text-secondary">
-                    {new Date(sub.billingDate).toLocaleDateString('es-ES')}
+                    {new Date(sub.billingDate).toLocaleDateString('es-ES', { timeZone: 'UTC' })}
                   </td>
                   <td className="px-6 py-4 text-secondary">{sub.paymentMethod}</td>
                   <td className="px-6 py-4">
                     <span 
                       className="px-3 py-1 rounded-full text-xs"
-                      style={{
-                        backgroundColor: colors.primaryAction,
-                        color: colors.primaryForeground
-                      }}
+                      style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
                     >
                       {sub.status}
                     </span>
@@ -305,7 +256,6 @@ export function Subscriptions() {
                       <button 
                         type="button"
                         onClick={() => handleEdit(sub)}
-                        aria-label={`Editar ${sub.name}`}
                         className="p-2 rounded-lg hover:opacity-80 transition-all"
                         style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
                       >
@@ -314,7 +264,6 @@ export function Subscriptions() {
                       <button 
                         type="button"
                         onClick={() => handleDelete(sub.id)}
-                        aria-label={`Eliminar ${sub.name}`}
                         className="p-2 rounded-lg hover:opacity-80 transition-all"
                         style={{ backgroundColor: colors.destructive, color: '#ffffff' }}
                       >
@@ -332,16 +281,13 @@ export function Subscriptions() {
       {filteredSubscriptions.length === 0 && (
         <div 
           className="text-center py-12 rounded-lg border"
-          style={{ 
-            borderColor: 'rgba(255, 255, 255, 0.1)',
-            backgroundColor: colors.bgSurface,
-          }}
+          style={{ borderColor: 'rgba(255, 255, 255, 0.1)', backgroundColor: colors.bgSurface }}
         >
           <p className="text-secondary">No se encontraron suscripciones</p>
         </div>
       )}
 
-      {/* Subscription Form Modal */}
+      {/* Aquí está la corrección: pasamos catalogs en lugar de categories y paymentMethods */}
       <SubscriptionForm
         isOpen={isFormOpen}
         onClose={() => {
@@ -350,8 +296,7 @@ export function Subscriptions() {
         }}
         onSave={handleSaveSubscription}
         editData={editingSubscription}
-        categories={mockCategories}
-        paymentMethods={mockPaymentMethods}
+        catalogs={catalogs}
       />
     </div>
   );
