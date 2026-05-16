@@ -1,0 +1,128 @@
+const { connectDB, sql } = require('../config/db');
+
+// ==========================================
+// CARGAR DATOS PARA EL FORMULARIO DE PAGO
+// ==========================================
+const getPaymentFormData = async (req, res) => {
+    const usuarioId = req.user.id;
+    try {
+        const pool = await connectDB();
+        
+        // Consultamos en paralelo para enviar todo en una sola petición al frontend
+        const [subscriptions, paymentMethods] = await Promise.all([
+            pool.request()
+                .input('UsuarioID', sql.Int, usuarioId)
+                .query(`
+                    SELECT s.ID, s.Descripcion, s.Costo, s.MetodoDePagoID 
+                    FROM Suscripcion s
+                    INNER JOIN Estado e ON s.EstadoID = e.ID
+                    WHERE s.UsuarioID = @UsuarioID AND e.Descripcion <> 'Cancelada'
+                `),
+            pool.request()
+                .input('UsuarioID2', sql.Int, usuarioId)
+                .query('SELECT ID, Alias FROM MetodoDePago WHERE UsuarioID = @UsuarioID2 ORDER BY Alias ASC')
+        ]);
+        
+        res.json({ suscripciones: subscriptions.recordset, metodosPago: paymentMethods.recordset });
+    } catch (error) {
+        console.error('Error al cargar datos del formulario:', error);
+        res.status(500).json({ error: 'Error al cargar datos del formulario' });
+    }
+};
+
+// ==========================================
+// PROCESAR UN PAGO MANUAL
+// ==========================================
+const registerPayment = async (req, res) => {
+    const usuarioId = req.user.id;
+    const { suscripcionId, metodoDePagoId, monto, fecha } = req.body;
+    
+    try {
+        const pool = await connectDB();
+        
+        // 1. Actualizamos el método de pago por si el usuario decidió usar una tarjeta diferente
+        await pool.request()
+            .input('SuscripcionID', sql.Int, suscripcionId)
+            .input('MetodoDePagoID', sql.Int, metodoDePagoId)
+            .query('UPDATE Suscripcion SET MetodoDePagoID = @MetodoDePagoID WHERE ID = @SuscripcionID');
+            
+        // 2. Registramos el movimiento en el historial y calculamos la nueva fecha de corte
+        const result = await pool.request()
+            .input('UsuarioID', sql.Int, usuarioId)
+            .input('SuscripcionID', sql.Int, suscripcionId)
+            .input('Monto', sql.Decimal(10, 2), monto)
+            .input('Fecha', sql.Date, fecha || null)
+            .execute('dbo.spRegistrarPago');
+            
+        res.status(201).json({ 
+            message: 'Pago procesado exitosamente', 
+            nuevaFechaRenovacion: result.recordset[0].NuevaFechaRenovacion 
+        });
+    } catch (error) {
+        console.error('Error al procesar el pago:', error);
+        res.status(500).json({ error: 'Error al procesar el pago' });
+    }
+};
+
+// ==========================================
+// CONSULTAR HISTORIAL GENERAL
+// ==========================================
+const getHistory = async (req, res) => {
+    const usuarioId = req.user.id;
+    try {
+        const pool = await connectDB();
+        const result = await pool.request()
+            .input('UsuarioID', sql.Int, usuarioId)
+            .query(`
+                SELECT h.ID, h.Fecha, h.Monto, s.Descripcion AS Suscripcion, mp.Alias AS MetodoPago
+                FROM HistorialDePago h
+                INNER JOIN Suscripcion s ON h.SuscripcionID = s.ID
+                INNER JOIN MetodoDePago mp ON s.MetodoDePagoID = mp.ID
+                WHERE h.UsuarioID = @UsuarioID 
+                ORDER BY h.Fecha DESC
+            `);
+        res.json({ historial: result.recordset });
+    } catch (error) {
+        console.error('Error al obtener historial:', error);
+        res.status(500).json({ error: 'Error al obtener historial' });
+    }
+};
+
+// ==========================================
+// CONSULTAR PRÓXIMOS COBROS
+// ==========================================
+// Reemplaza getUpcomingSubscriptions:
+const getUpcomingSubscriptions = async (req, res) => {
+    const dias = req.query.dias ? parseInt(req.query.dias) : 7;
+    const usuarioId = req.user.id;
+
+    try {
+        const pool = await connectDB();
+        const result = await pool.request()
+            .input('DiasAnticipacion', sql.Int, dias)
+            .execute('dbo.spObtenerSuscripcionesPorVencer');
+            
+        // El SP devuelve las de todos los usuarios, filtramos por el actual
+        const suscripcionesUsuario = result.recordset.filter(s => s.UsuarioID === usuarioId);
+        
+        // Mapeamos al formato en inglés para React
+        const datosFormateados = suscripcionesUsuario.map(sub => ({
+            id: sub.SuscripcionID,
+            name: sub.Suscripcion,
+            billingDate: sub.FechaRenovacion,
+            cost: sub.Costo,
+            imageUrl: sub.ImagenURL,
+            imageAlt: sub.ImagenAlt,
+            categoryColor: sub.ColorCategoria,
+            categoryName: sub.NombreCategoria,
+            daysRemaining: sub.DiasRestantes
+        }));
+
+        res.json({ proximasAVencer: datosFormateados });
+    } catch (error) {
+        console.error('Error al obtener próximos cobros:', error);
+        res.status(500).json({ error: 'Error al obtener próximos cobros' });
+    }
+};
+
+module.exports = { getPaymentFormData, registerPayment, getHistory, getUpcomingSubscriptions };
