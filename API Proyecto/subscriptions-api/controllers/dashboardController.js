@@ -92,7 +92,8 @@ const getUpcomingPayments = async (req, res) => {
         enUnaSemana.setDate(hoy.getDate() + 7);
         
         const pagosDeLaSemana = todasPendientes.filter(sub => {
-            const fecha = new Date(sub.FechaRenovacion);
+            // CORRECCIÓN: Usamos el alias 'billingDate' que viene del SELECT
+            const fecha = new Date(sub.billingDate); 
             return fecha >= hoy && fecha <= enUnaSemana;
         });
         
