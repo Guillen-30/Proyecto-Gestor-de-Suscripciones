@@ -152,14 +152,14 @@ export async function getPaymentTypes() {
   );
 }
 
-export async function createPaymentMethod(data: { tipoId: number; alias: string }) {
+export async function createPaymentMethod(data: { tipoId: number; alias: string; detalles?: string | null }) {
   return request<{ message: string; id: number }>(
     `${SUBS_API}/api/payment-methods`,
     { method: 'POST', headers: authHeaders(), body: JSON.stringify(data) }
   );
 }
 
-export async function updatePaymentMethod(id: number, data: { tipoId: number; alias: string }) {
+export async function updatePaymentMethod(id: number, data: { tipoId: number; alias: string; detalles?: string | null }) {
   return request<{ message: string }>(
     `${SUBS_API}/api/payment-methods/${id}`,
     { method: 'PUT', headers: authHeaders(), body: JSON.stringify(data) }

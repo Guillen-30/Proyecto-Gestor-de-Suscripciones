@@ -9,7 +9,7 @@ const getPaymentMethods = async (req, res) => {
                     mp.ID AS id,
                     mp.Alias AS alias,
                     t.Descripcion AS type,
-                    'Terminada en ****' AS details,
+                    mp.Detalles AS details,
                     CAST(0 AS BIT) AS isDefault
                 FROM MetodoDePago mp
                 INNER JOIN Tipo t ON mp.TipoID = t.ID
@@ -23,12 +23,13 @@ const getPaymentMethods = async (req, res) => {
 };
 
 const createPaymentMethod = async (req, res) => {
-    const { tipoId, alias } = req.body;
+    const { tipoId, alias, detalles } = req.body;
     try {
         const pool = await connectDB();
         const result = await pool.request()
             .input('TipoID', sql.Int, tipoId)
             .input('Alias', sql.NVarChar, alias)
+            .input('Detalles', sql.NVarChar, detalles || null)
             .execute('dbo.spCrearMetodoPago');
         res.status(201).json({ message: 'Método creado exitosamente', id: result.recordset[0].ID });
     } catch (error) {
@@ -56,16 +57,17 @@ const deletePaymentMethod = async (req, res) => {
 
 const updatePaymentMethod = async (req, res) => {
     const { id } = req.params;
-    const { tipoId, alias } = req.body;
+    const { tipoId, alias, detalles } = req.body;
     try {
         const pool = await connectDB();
         const result = await pool.request()
             .input('ID', sql.Int, id)
             .input('TipoID', sql.Int, tipoId)
             .input('Alias', sql.NVarChar, alias)
+            .input('Detalles', sql.NVarChar, detalles ?? null)
             .query(`
                 UPDATE MetodoDePago
-                SET TipoID = @TipoID, Alias = @Alias
+                SET TipoID = @TipoID, Alias = @Alias, Detalles = @Detalles
                 WHERE ID = @ID
             `);
         if (result.rowsAffected[0] === 0) {
