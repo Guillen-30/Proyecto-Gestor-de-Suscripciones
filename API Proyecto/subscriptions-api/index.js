@@ -1,10 +1,12 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const app = express();
 
 // Importamos todas las rutas que centralizamos
 const apiRoutes = require('./routes/allRoutes');
 
+app.use(cors());
 // Middleware para que Express entienda el formato JSON en el Body de las peticiones
 app.use(express.json());
 

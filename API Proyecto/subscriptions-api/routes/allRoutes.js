@@ -59,6 +59,8 @@ router.get('/payments/form-data', payCtrl.getPaymentFormData);
 router.get('/payments/history', payCtrl.getHistory);
 router.get('/payments/upcoming', payCtrl.getUpcomingSubscriptions);
 router.post('/payments', payCtrl.registerPayment);
+router.put('/payments/:id', payCtrl.updatePayment);
+router.delete('/payments/:id', payCtrl.deletePayment);
 
 // ==========================================
 // RUTAS DEL DASHBOARD (Pantalla 1)

@@ -1,34 +1,74 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import { Home, CreditCard, Clock, Lock, Settings, Bell, Plus, User, FolderOpen, Wallet, LogOut } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NotificationsModal } from "./NotificationsModal";
 import { AccountModal } from "./AccountModal";
 import { SubscriptionForm } from "./SubscriptionForm";
 import { useTheme } from "../contexts/ThemeContext";
-
-const mockCategories = ["Entretenimiento", "Música", "Productividad", "Desarrollo", "Almacenamiento"];
-const mockPaymentMethods = [
-  { id: 1, alias: "Tarjeta Visa *1234" },
-  { id: 2, alias: "Tarjeta Master *5678" },
-  { id: 3, alias: "PayPal" },
-];
+import { getSubscriptionFormData, createSubscription } from "../lib/api";
 
 export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [badgeCount, setBadgeCount] = useState(() =>
+    parseInt(localStorage.getItem('notification_unread_count') ?? '0')
+  );
   const [showSubscriptionForm, setShowSubscriptionForm] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [catalog, setCatalog] = useState<{
+    categorias: Array<{ id: number; name: string }>;
+    ciclosFacturacion: Array<{ id: number; description: string }>;
+    estados: Array<{ id: number; description: string }>;
+    metodosPago: Array<{ id: number; alias: string }>;
+  }>({ categorias: [], ciclosFacturacion: [], estados: [], metodosPago: [] });
+
+  useEffect(() => {
+    getSubscriptionFormData().then((data: any) => {
+      setCatalog({
+        categorias: data.categorias ?? [],
+        ciclosFacturacion: data.ciclosFacturacion ?? [],
+        estados: data.estados ?? [],
+        metodosPago: data.metodosPago ?? [],
+      });
+    }).catch(() => {});
+  }, []);
+
+  const currentUser = (() => {
+    try { return JSON.parse(localStorage.getItem("user") ?? "{}"); } catch { return {}; }
+  })();
 
   const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/login");
   };
 
-  const handleSaveSubscription = (subscription: any) => {
-    console.log("Nueva suscripción:", subscription);
-    // In a real app, this would save to state management or backend
+  const handleSaveSubscription = async (subscription: any) => {
+    try {
+      const categoriaId = catalog.categorias.find(c => c.name === subscription.category)?.id ?? null;
+      const cicloId = catalog.ciclosFacturacion.find(c => c.description === subscription.billingCycle)?.id ?? null;
+      const estadoId = catalog.estados.find(e => e.description === subscription.status)?.id ?? null;
+      const metodoDePagoId = catalog.metodosPago.find(m => m.alias === subscription.paymentMethod)?.id ?? null;
+      if (!cicloId) { alert(`Ciclo de facturación no reconocido: "${subscription.billingCycle}"`); return; }
+      if (!estadoId) { alert(`Estado no reconocido: "${subscription.status}"`); return; }
+      if (!metodoDePagoId) { alert('Selecciona un método de pago válido.'); return; }
+      await createSubscription({
+        descripcion: subscription.name,
+        costo: subscription.cost,
+        fechaRenovacion: subscription.billingDate || subscription.nextBillingDate,
+        categoriaId,
+        cicloFacturacionId: cicloId,
+        estadoId,
+        metodoDePagoId,
+        imageUrl: subscription.imageUrl || null,
+        imageAlt: subscription.imageAlt || null,
+      });
+      window.dispatchEvent(new CustomEvent('subscription-saved'));
+    } catch (err) {
+      alert("Error al guardar suscripción: " + (err as Error).message);
+    }
   };
 
   const navItems = [
@@ -103,7 +143,17 @@ export function Layout() {
           </h1>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setShowSubscriptionForm(true)}
+              onClick={() => {
+                getSubscriptionFormData().then((data: any) => {
+                  setCatalog({
+                    categorias: data.categorias ?? [],
+                    ciclosFacturacion: data.ciclosFacturacion ?? [],
+                    estados: data.estados ?? [],
+                    metodosPago: data.metodosPago ?? [],
+                  });
+                }).catch(() => {});
+                setShowSubscriptionForm(true);
+              }}
               className="px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all hover:opacity-90"
               style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
             >
@@ -121,11 +171,15 @@ export function Layout() {
               style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
             >
               <Bell className="w-5 h-5" />
-              <span
-                className="absolute top-1 right-1 w-2 h-2 rounded-full"
-                aria-hidden="true"
-                style={{ backgroundColor: theme === 'dark' ? '#E61445' : '#dc2626' }}
-              />
+              {badgeCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
+                  aria-label={`${badgeCount} notificaciones sin leer`}
+                  style={{ backgroundColor: theme === 'dark' ? '#E61445' : '#dc2626', color: '#fff' }}
+                >
+                  {badgeCount > 99 ? '99+' : badgeCount}
+                </span>
+              )}
             </button>
             <button
               type="button"
@@ -149,23 +203,26 @@ export function Layout() {
       </div>
 
       {/* Modals */}
-      <NotificationsModal 
-        isOpen={showNotifications} 
-        onClose={() => setShowNotifications(false)} 
+      <NotificationsModal
+        isOpen={showNotifications}
+        onClose={() => {
+          setShowNotifications(false);
+          setBadgeCount(parseInt(localStorage.getItem('notification_unread_count') ?? '0'));
+        }}
       />
       <AccountModal
         isOpen={showAccountModal}
         onClose={() => setShowAccountModal(false)}
         onNavigate={(path) => navigate(path)}
         onLogout={handleLogout}
-        user={{ name: 'Usuario Demo', email: 'demo@example.com' }}
+        user={{ name: currentUser.nombre || currentUser.name || 'Usuario', email: currentUser.correo || currentUser.email || '' }}
       />
       <SubscriptionForm
         isOpen={showSubscriptionForm}
         onClose={() => setShowSubscriptionForm(false)}
         onSave={handleSaveSubscription}
-        categories={mockCategories}
-        paymentMethods={mockPaymentMethods}
+        categories={catalog.categorias.map(c => c.name)}
+        paymentMethods={catalog.metodosPago}
       />
     </div>
   );

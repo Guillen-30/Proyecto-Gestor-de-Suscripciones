@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  # SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: suscripciones-sqlserver
+    environment:
+      ACCEPT_EULA: 'Y'
+      SA_PASSWORD: '382005ALH!'
+      MSSQL_TCP_PORT: 1433
+    ports:
+      - "1433:1433"
+    volumes:
+      # Montar los scripts SQL
+      - ./API Proyecto/creacion_BD.sql:/var/opt/mssql/scripts/creacion_BD.sql
+      - ./API Proyecto/stored_procedures.sql:/var/opt/mssql/scripts/stored_procedures.sql
+      # Volumen para persistencia de datos
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - suscripciones-network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 382005ALH! -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: /bin/bash -c 'chmod +x /var/opt/mssql/scripts/*.sql && /opt/mssql/bin/sqlservr'
+    # Ejecutar script de inicialización después de que SQL Server esté listo
+    entrypoint: sh -c "
+      /opt/mssql/bin/sqlservr &
+      PID=$$!
+      sleep 15;
+      echo 'Ejecutando scripts SQL...';
+      /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 382005ALH! -d master -i /var/opt/mssql/scripts/creacion_BD.sql;
+      /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 382005ALH! -d SuscripcionesDB -i /var/opt/mssql/scripts/stored_procedures.sql;
+      echo 'Scripts ejecutados!';
+      wait $$PID
+      "
+
+  # User API
+  user-api:
+    build:
+      context: ./API Proyecto/user-api
+      dockerfile: Dockerfile
+    container_name: suscripciones-user-api
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_USER: sa
+      DB_PASSWORD: 382005ALH!
+      DB_SERVER: sqlserver
+      DB_NAME: SuscripcionesDB
+      RABBITMQ_URL: amqp://rabbitmq
+      JWT_SECRET: tu_clave_secreta_super_segura
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - suscripciones-network
+    restart: unless-stopped
+
+  # Subscriptions API
+  subscriptions-api:
+    build:
+      context: ./API Proyecto/subscriptions-api
+      dockerfile: Dockerfile
+    container_name: suscripciones-subscriptions-api
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DB_USER: sa
+      DB_PASSWORD: 382005ALH!
+      DB_SERVER: sqlserver
+      DB_NAME: SuscripcionesDB
+      JWT_SECRET: tu_clave_secreta_super_segura
+      ENCRYPTION_KEY: EstaEsUnaClaveSecretaDe32Caracteres!
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - suscripciones-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: suscripciones-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - user-api
+      - subscriptions-api
+    networks:
+      - suscripciones-network
+    restart: unless-stopped
+
+networks:
+  suscripciones-network:
+    driver: bridge
+
+volumes:
+  sqlserver_data:
+    driver: local

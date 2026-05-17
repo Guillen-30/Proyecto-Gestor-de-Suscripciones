@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "382005ALH!"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./creacion_BD.sql:/var/opt/mssql/scripts/creacion_BD.sql
+      - ./stored_procedures.sql:/var/opt/mssql/scripts/stored_procedures.sql
+      - ./init-db.sh:/init-db.sh
+    entrypoint: ["/bin/bash", "-c", "tr -d '\\r' < /init-db.sh > /tmp/init-db.sh && bash /tmp/init-db.sh"]
+    healthcheck:
+      test:
+        - "CMD"
+        - "/opt/mssql-tools18/bin/sqlcmd"
+        - "-S"
+        - "localhost"
+        - "-U"
+        - "sa"
+        - "-P"
+        - "382005ALH!"
+        - "-C"
+        - "-Q"
+        - "SELECT name FROM sys.databases WHERE name='SuscripcionesDB'"
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 90s
+
+  user-api:
+    build:
+      context: ./user-api
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: "3001"
+      DB_USER: "sa"
+      DB_PASSWORD: "382005ALH!"
+      DB_SERVER: "sqlserver"
+      DB_NAME: "SuscripcionesDB"
+      JWT_SECRET: "tu_clave_secreta_super_segura"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: on-failure
+
+  subscriptions-api:
+    build:
+      context: ./subscriptions-api
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: "3002"
+      DB_USER: "sa"
+      DB_PASSWORD: "382005ALH!"
+      DB_SERVER: "sqlserver"
+      DB_NAME: "SuscripcionesDB"
+      JWT_SECRET: "tu_clave_secreta_super_segura"
+      ENCRYPTION_KEY: "EstaEsUnaClaveSecretaDe32Caracteres!"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  sqlserver_data:

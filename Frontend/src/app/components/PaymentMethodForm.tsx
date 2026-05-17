@@ -7,9 +7,10 @@ interface PaymentMethodFormProps {
   onClose: () => void;
   onSave: (method: any) => void;
   editData?: any;
+  typeOptions?: string[];
 }
 
-export function PaymentMethodForm({ isOpen, onClose, onSave, editData }: PaymentMethodFormProps) {
+export function PaymentMethodForm({ isOpen, onClose, onSave, editData, typeOptions }: PaymentMethodFormProps) {
   const colors = useThemeColors();
   const [formData, setFormData] = useState(editData || {
     alias: "",
@@ -28,13 +29,9 @@ export function PaymentMethodForm({ isOpen, onClose, onSave, editData }: Payment
     onClose();
   };
 
-  const methodTypes = [
-    "Tarjeta de Crédito",
-    "Tarjeta de Débito",
-    "Cartera Digital",
-    "Transferencia Bancaria",
-    "Otro"
-  ];
+  const methodTypes = typeOptions && typeOptions.length > 0
+    ? typeOptions
+    : ["Tarjeta de Crédito", "Tarjeta de Débito", "Cartera Digital", "Transferencia Bancaria", "Otro"];
 
   if (!isOpen) return null;
 
