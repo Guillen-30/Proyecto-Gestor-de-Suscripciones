@@ -9,7 +9,7 @@ Aplicación web para gestionar suscripciones personales o empresariales. Permite
 - Historial y registro manual de pagos
 - Bóveda de credenciales (almacenamiento cifrado)
 - Gestión de métodos de pago y categorías personalizadas
-- Preferencias de notificaciones por suscripción
+- Notificaciones de próximos vencimientos
 - Modo oscuro / claro y soporte multimoneda
 
 ## Stack
@@ -19,7 +19,7 @@ Aplicación web para gestionar suscripciones personales o empresariales. Permite
 | Frontend | React 19 + TypeScript + Vite + Tailwind CSS |
 | Auth API | Node.js / Express — puerto 3001 |
 | Subscriptions API | Node.js / Express — puerto 3002 |
-| Base de datos | SQL Server 2019 — puerto 1433 |
+| Base de datos | SQL Server 2022 — puerto 1433 |
 | Contenedores | Docker + Docker Compose |
 
 ---
@@ -43,16 +43,17 @@ No necesitas Node.js, npm ni SQL Server instalados localmente; todo corre dentro
    cd Proyecto-Gestor-de-Suscripciones
    ```
 
-2. Levanta todos los servicios:
+2. Entra a la carpeta `API Proyecto` y levanta todos los servicios:
    ```bash
+   cd "API Proyecto"
    docker compose up --build
    ```
    La primera vez tarda varios minutos porque:
-   - SQL Server necesita iniciar (~15 s)
+   - SQL Server necesita iniciar (~30–90 s)
    - Se ejecutan los scripts SQL de creación de base de datos y stored procedures
-   - Se compilan las dependencias nativas de Node (bcrypt)
+   - Se instalan y compilan las dependencias de Node en cada contenedor
 
-3. Cuando veas en la terminal `Scripts ejecutados!`, la app está lista en:
+3. Cuando veas en la terminal `Inicializacion completada!` y `VITE v7.x.x  ready`, la app está lista en:
    ```
    http://localhost:5173
    ```
@@ -66,9 +67,11 @@ No necesitas Node.js, npm ni SQL Server instalados localmente; todo corre dentro
    docker compose down -v
    ```
 
+> **Nota:** La próxima vez que quieras levantar el proyecto (sin cambios de código), usa `docker compose up` sin `--build`. Usa `--build` solo la primera vez o cuando hayas modificado código.
+
 ---
 
-### Opción B — Ejecución local (sin Docker, mejor no la haga legalmente)
+### Opción B — Ejecución local (sin Docker, por si sos mazoquista)
 
 Necesitarás: Node.js 20+, npm y una instancia de SQL Server accesible.
 
@@ -151,29 +154,37 @@ Abre `http://localhost:5173`.
 
 ```
 Proyecto-Gestor-de-Suscripciones/
-├── docker-compose.yml              # Orquestación completa
-├── API Proyecto/
-│   ├── creacion_BD.sql             # Script de creación de tablas
-│   ├── stored_procedures.sql       # Stored procedures
-│   ├── docker-compose.yml          # Compose alternativo para desarrollo
-│   ├── user-api/                   # Microservicio de autenticación (puerto 3001)
-│   │   ├── index.js
-│   │   ├── Dockerfile
-│   │   └── ...
-│   └── subscriptions-api/          # Microservicio principal (puerto 3002)
-│       ├── index.js
-│       ├── Dockerfile
-│       └── ...
-└── Frontend/                       # Aplicación React (puerto 5173)
-    ├── src/
-    │   └── app/
-    │       ├── components/         # Componentes UI
-    │       ├── contexts/           # ThemeContext
-    │       ├── hooks/              # Custom hooks
-    │       ├── lib/
-    │       │   └── api.ts          # Cliente HTTP hacia las APIs
-    │       └── routes/             # Páginas de la app
-    └── ...
+├── README.md
+├── docker-compose.yml              # Compose alternativo (solo backend)
+└── API Proyecto/                   # Directorio principal de ejecución
+    ├── docker-compose.yml          # Orquestación completa (usar este)
+    ├── creacion_BD.sql             # Script de creación de tablas
+    ├── stored_procedures.sql       # Stored procedures
+    ├── init-db.sh                  # Script de inicialización del contenedor SQL
+    ├── user-api/                   # Microservicio de autenticación (puerto 3001)
+    │   ├── index.js
+    │   ├── Dockerfile
+    │   ├── controllers/
+    │   ├── middleware/
+    │   └── routes/
+    └── subscriptions-api/          # Microservicio principal (puerto 3002)
+        ├── index.js
+        ├── Dockerfile
+        ├── controllers/            # 8 controladores (suscripciones, pagos, etc.)
+        ├── middleware/
+        ├── routes/
+        └── utils/
+Frontend/                           # Aplicación React (puerto 5173)
+├── Dockerfile
+├── .dockerignore
+├── package.json
+└── src/
+    └── app/
+        ├── components/             # Componentes UI
+        ├── contexts/               # ThemeContext
+        ├── hooks/                  # Custom hooks
+        └── lib/
+            └── api.ts              # Cliente HTTP hacia las APIs
 ```
 
 ---
@@ -205,11 +216,11 @@ Las mismas que User API, más:
 
 ### Tokens JWT
 
-Los tokens expiran en **2 horas**. Si después de ese tiempo ves errores 401/403 en el frontend, cierra sesión e inicia sesión de nuevo.
+Los tokens expiran en **2 horas**. Si después de ese tiempo ves errores 401/403 en el frontend, cierra sesión e inicia sesión de nuevo (o abre DevTools → Application → Local Storage → Clear All).
 
 ### Fechas de renovación
 
-Al crear una suscripción, la "Próxima Fecha de Pago" se ingresa manualmente — no se calcula automáticamente a partir del ciclo de facturación. Asegúrate de ingresar la fecha correcta que corresponde al ciclo seleccionado.
+Al crear una suscripción, la "Próxima Fecha de Pago" se ingresa manualmente — no se calcula automáticamente a partir del ciclo de facturación. Asegúrate de ingresar la fecha correcta.
 
 Cuando registras un pago manualmente (desde Historial Financiero), el sistema avanza la fecha de renovación automáticamente según el ciclo de la suscripción, a partir de la fecha del pago registrado.
 
@@ -221,21 +232,28 @@ Con Docker Compose, los datos de SQL Server se guardan en el volumen `sqlserver_
 
 ## Solución de problemas
 
+**Error de puerto en uso al levantar el proyecto**
+```bash
+# Detener todos los contenedores Docker activos
+docker stop $(docker ps -q)
+# Luego volver a levantar
+docker compose up --build
+```
+
 **Los servicios no inician / la app no carga**
 - Verifica que Docker Desktop esté corriendo
-- Confirma que los puertos 1433, 3001, 3002 y 5173 no están en uso
+- Confirma que los puertos 1433, 3001, 3002 y 5173 no están en uso por otras aplicaciones
 - Revisa los logs: `docker compose logs -f`
 
 **Error 401 / 403 al navegar**
 - El token expiró. Cierra sesión desde el menú lateral y vuelve a iniciar sesión.
 
-**La base de datos no se crea**
-- Asegúrate de haber esperado a que aparezca `Scripts ejecutados!` en los logs antes de usar la app.
+**La base de datos no se inicializa**
+- Espera a que aparezca `Inicializacion completada!` en los logs antes de usar la app.
 - Si el mensaje no aparece, prueba: `docker compose down -v && docker compose up --build`
 
-**Error de puerto en uso**
+**Ver qué proceso usa un puerto específico**
 ```bash
-# Ver qué proceso usa el puerto (ejemplo: 3001)
 netstat -ano | findstr :3001   # Windows
 lsof -i :3001                  # macOS / Linux
 ```

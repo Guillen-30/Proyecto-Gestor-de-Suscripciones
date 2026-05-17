@@ -15,5 +15,5 @@ COPY . .
 # Exponer puerto
 EXPOSE 5173
 
-# Comando para ejecutar en modo preview (después de intentar build)
-CMD ["sh", "-c", "npm run build 2>/dev/null && npx serve -s dist -l 5173 || npm run dev -- --host 0.0.0.0"]
+# Ejecutar Vite dev server (accesible desde fuera del contenedor)
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
