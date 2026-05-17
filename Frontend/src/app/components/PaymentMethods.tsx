@@ -41,9 +41,9 @@ export function PaymentMethods() {
     try {
       const tipoId = paymentTypes.find(t => t.description === method.type)?.id ?? paymentTypes[0]?.id ?? 1;
       if (editingMethod) {
-        await updatePaymentMethod(editingMethod.id, { tipoId, alias: method.alias });
+        await updatePaymentMethod(editingMethod.id, { tipoId, alias: method.alias, detalles: method.details || null });
       } else {
-        await createPaymentMethod({ tipoId, alias: method.alias });
+        await createPaymentMethod({ tipoId, alias: method.alias, detalles: method.details || null });
       }
       setEditingMethod(null);
       await loadData();
@@ -153,6 +153,7 @@ export function PaymentMethods() {
       )}
 
       <PaymentMethodForm
+        key={editingMethod?.id ?? 'new'}
         isOpen={isFormOpen}
         onClose={() => { setIsFormOpen(false); setEditingMethod(null); }}
         onSave={handleSave}

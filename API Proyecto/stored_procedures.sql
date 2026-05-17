@@ -367,16 +367,17 @@ GO
 -- ============================================================
 
 CREATE OR ALTER PROCEDURE spCrearMetodoPago
-    @TipoID INT,
-    @Alias  NVARCHAR(40)
+    @TipoID   INT,
+    @Alias    NVARCHAR(40),
+    @Detalles NVARCHAR(500) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
     IF NOT EXISTS (SELECT 1 FROM Tipo WHERE ID = @TipoID)
         RAISERROR('Tipo de método de pago no encontrado.', 16, 1);
 
-    INSERT INTO MetodoDePago (TipoID, Alias)
-    VALUES (@TipoID, @Alias);
+    INSERT INTO MetodoDePago (TipoID, Alias, Detalles)
+    VALUES (@TipoID, @Alias, @Detalles);
 
     SELECT SCOPE_IDENTITY() AS ID;
 END;
