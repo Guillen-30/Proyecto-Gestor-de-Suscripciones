@@ -1,245 +1,253 @@
-import { Calendar, DollarSign, TrendingDown, TrendingUp, Plus } from "lucide-react";
+import { Calendar, DollarSign, TrendingDown, TrendingUp, Plus, Trash2, Edit } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PaymentHistoryForm } from "./PaymentHistoryForm";
 import { useThemeColors } from "../hooks/useThemeColors";
+import { getPaymentHistory, getDashboardExpenses, getPaymentFormData, registerPayment, updatePayment, deletePayment } from "../lib/api";
+import { useTheme } from "../contexts/ThemeContext";
 
-const mockSubscriptions = [
-  { id: 1, name: "Netflix", category: "Entretenimiento" },
-  { id: 2, name: "Spotify", category: "Música" },
-  { id: 3, name: "Adobe CC", category: "Productividad" },
-  { id: 4, name: "Amazon Prime", category: "Entretenimiento" },
-  { id: 5, name: "GitHub Pro", category: "Desarrollo" },
-  { id: 6, name: "Dropbox", category: "Almacenamiento" },
-];
+const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', CRC: '₡', MXN: '$MX ' };
+const CURRENCY_RATES: Record<string, number> = { USD: 1, EUR: 0.92, CRC: 518, MXN: 17.5 };
 
-const mockPaymentMethods = [
-  { id: 1, alias: "Tarjeta Visa *1234" },
-  { id: 2, alias: "Tarjeta Master *5678" },
-  { id: 3, alias: "PayPal" },
-];
-
-const monthlyTrend = [
-  { month: "Oct", amount: 95 },
-  { month: "Nov", amount: 105 },
-  { month: "Dic", amount: 112 },
-  { month: "Ene", amount: 98 },
-  { month: "Feb", amount: 110 },
-  { month: "Mar", amount: 112 },
-];
-
-const categoryBreakdown = [
-  { name: "Entretenimiento", value: 45.97, color: "#646cff" },
-  { name: "Productividad", value: 52.99, color: "#52b788" },
-  { name: "Música", value: 9.99, color: "#ffd166" },
-  { name: "Desarrollo", value: 7.00, color: "#E61445" },
-  { name: "Almacenamiento", value: 11.99, color: "#118ab2" },
-];
+interface HistoryItem {
+  id: number;
+  service: string;
+  date: string;
+  amount: number;
+  category: string;
+  method: string;
+  subscriptionId?: number;
+}
 
 export function FinancialHistory() {
   const colors = useThemeColors();
+  const { currency } = useTheme();
+  const sym = CURRENCY_SYMBOLS[currency] ?? currency + ' ';
+  const rate = CURRENCY_RATES[currency] ?? 1;
+  const toDisplay = (usdAmount: number) => (usdAmount * rate).toFixed(2);
   const [isPaymentFormOpen, setIsPaymentFormOpen] = useState(false);
-  const [paymentHistory, setPaymentHistory] = useState([
-    { id: 1, service: "Netflix", date: "2026-03-15", amount: 15.99, category: "Entretenimiento", method: "Tarjeta Visa *1234" },
-    { id: 2, service: "Spotify", date: "2026-03-10", amount: 9.99, category: "Música", method: "Tarjeta Master *5678" },
-    { id: 3, service: "Adobe CC", date: "2026-03-20", amount: 52.99, category: "Productividad", method: "Tarjeta Visa *1234" },
-    { id: 4, service: "Amazon Prime", date: "2026-03-08", amount: 14.99, category: "Entretenimiento", method: "Tarjeta Visa *1234" },
-    { id: 5, service: "GitHub Pro", date: "2026-03-12", amount: 7.00, category: "Desarrollo", method: "Tarjeta Master *5678" },
-    { id: 6, service: "Dropbox", date: "2026-03-18", amount: 11.99, category: "Almacenamiento", method: "PayPal" },
-    { id: 7, service: "Netflix", date: "2026-02-15", amount: 15.99, category: "Entretenimiento", method: "Tarjeta Visa *1234" },
-    { id: 8, service: "Spotify", date: "2026-02-10", amount: 9.99, category: "Música", method: "Tarjeta Master *5678" },
-    { id: 9, service: "Adobe CC", date: "2026-02-20", amount: 52.99, category: "Productividad", method: "Tarjeta Visa *1234" },
-    { id: 10, service: "Amazon Prime", date: "2026-02-08", amount: 14.99, category: "Entretenimiento", method: "Tarjeta Visa *1234" },
-  ]);
+  const [editingPayment, setEditingPayment] = useState<HistoryItem | null>(null);
+  const [paymentHistory, setPaymentHistory] = useState<HistoryItem[]>([]);
+  const [monthlyTrend, setMonthlyTrend] = useState<Array<{ month: string; amount: number }>>([]);
+  const [formData, setFormData] = useState<{ suscripciones: any[]; metodosPago: any[] }>({ suscripciones: [], metodosPago: [] });
 
-  const handleSavePayment = (payment: any) => {
-    setPaymentHistory([payment, ...paymentHistory]);
+  async function loadData() {
+    try {
+      const [histData, expenses] = await Promise.all([
+        getPaymentHistory(),
+        getDashboardExpenses(),
+      ]);
+      setPaymentHistory(histData.historial.map((h: any) => ({
+        id: h.ID,
+        service: h.Suscripcion || '',
+        date: h.Fecha,
+        amount: parseFloat(h.Monto),
+        category: '',
+        method: h.MetodoPago || '',
+        subscriptionId: h.SuscripcionID,
+      })));
+      setMonthlyTrend(expenses);
+    } catch (err) {
+      console.error("Error cargando historial:", err);
+    }
+  }
+
+  async function loadFormData() {
+    try {
+      const data = await getPaymentFormData();
+      setFormData({
+        suscripciones: data.suscripciones.map((s: any) => ({
+          id: s.ID,
+          name: s.Descripcion,
+          category: '',
+        })),
+        metodosPago: data.metodosPago.map((m: any) => ({
+          id: m.ID,
+          alias: m.Alias,
+        })),
+      });
+    } catch (err) {
+      console.error("Error cargando datos del formulario:", err);
+    }
+  }
+
+  useEffect(() => { loadData(); }, []);
+
+  const handleOpenPaymentForm = () => {
+    loadFormData();
+    setIsPaymentFormOpen(true);
   };
 
-  const totalSpent = paymentHistory.reduce((sum, payment) => sum + payment.amount, 0);
-  const currentMonth = 112.95;
-  const previousMonth = 110.00;
-  const percentChange = ((currentMonth - previousMonth) / previousMonth * 100).toFixed(1);
+  const handleSavePayment = async (payment: any) => {
+    try {
+      if (editingPayment) {
+        await updatePayment(editingPayment.id, {
+          monto: payment.amount / rate,
+          fecha: payment.date,
+        });
+      } else {
+        await registerPayment({
+          suscripcionId: payment.subscriptionId,
+          metodoDePagoId: payment.paymentMethodId,
+          monto: payment.amount / rate,
+          fecha: payment.date,
+        });
+      }
+      setEditingPayment(null);
+      await loadData();
+    } catch (err) {
+      alert("Error al guardar pago: " + (err as Error).message);
+    }
+  };
+
+  const handleEditPayment = (payment: HistoryItem) => {
+    loadFormData();
+    setEditingPayment(payment);
+    setIsPaymentFormOpen(true);
+  };
+
+  const handleDeletePayment = async (id: number) => {
+    if (!confirm("¿Estás seguro de eliminar este pago del historial?")) return;
+    try {
+      await deletePayment(id);
+      await loadData();
+    } catch (err) {
+      alert("Error al eliminar pago: " + (err as Error).message);
+    }
+  };
+
+  const totalSpent = paymentHistory.reduce((sum, p) => sum + p.amount, 0);
+  const currentMonthAmount = monthlyTrend.length > 0 ? monthlyTrend[monthlyTrend.length - 1].amount : 0;
+  const prevMonthAmount = monthlyTrend.length > 1 ? monthlyTrend[monthlyTrend.length - 2].amount : 0;
+  const percentChange = prevMonthAmount > 0
+    ? ((currentMonthAmount - prevMonthAmount) / prevMonthAmount * 100).toFixed(1)
+    : '0.0';
+
+  const convertedTrend = monthlyTrend.map(m => ({ ...m, amount: parseFloat((m.amount * rate).toFixed(2)) }));
+
+  const categoryBreakdown = Object.entries(
+    paymentHistory.reduce((acc: Record<string, number>, p) => {
+      const key = p.category || p.service || 'Otro';
+      acc[key] = (acc[key] || 0) + p.amount * rate;
+      return acc;
+    }, {})
+  ).map(([name, value], i) => ({
+    name,
+    value,
+    color: ['#646cff', '#52b788', '#ffd166', '#E61445', '#118ab2'][i % 5],
+  }));
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div 
-          className="p-6 rounded-lg border"
-          style={{ 
-            backgroundColor: colors.bgSurface,
-            borderColor: colors.border
-          }}
-        >
+        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Total Gastado</p>
-              <h3 className="text-3xl text-foreground">${totalSpent.toFixed(2)}</h3>
-              <p className="text-xs text-muted-foreground mt-1">Últimos 6 meses</p>
+              <h3 className="text-3xl text-foreground">{sym}{toDisplay(totalSpent)}</h3>
+              <p className="text-xs text-muted-foreground mt-1">Histórico registrado</p>
             </div>
-            <div 
-              className="w-12 h-12 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: colors.primaryAction }}
-            >
-              <DollarSign className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }}/>
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
+              <DollarSign className="w-6 h-6" style={{ color: '#ffffff' }} />
             </div>
           </div>
         </div>
 
-        <div 
-          className="p-6 rounded-lg border"
-          style={{ 
-            backgroundColor: colors.bgSurface,
-            borderColor: colors.border
-          }}
-        >
+        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Mes Actual</p>
-              <h3 className="text-3xl text-foreground">${currentMonth.toFixed(2)}</h3>
+              <h3 className="text-3xl text-foreground">{sym}{toDisplay(currentMonthAmount)}</h3>
               <div className="flex items-center gap-1 mt-1">
-                {parseFloat(percentChange) > 0 ? (
-                  <TrendingUp className="w-4 h-4 text-[#E61445]" />
-                ) : (
-                  <TrendingDown className="w-4 h-4 text-[#52b788]" />
-                )}
-                <p className={`text-xs ${parseFloat(percentChange) > 0 ? 'text-secondary' : 'text-secondary'}`}>
-                  {percentChange}% vs mes anterior
-                </p>
+                {parseFloat(percentChange) > 0
+                  ? <TrendingUp className="w-4 h-4 text-[#E61445]" />
+                  : <TrendingDown className="w-4 h-4 text-[#52b788]" />}
+                <p className="text-xs text-secondary">{percentChange}% vs mes anterior</p>
               </div>
             </div>
-            <div 
-              className="w-12 h-12 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: colors.primaryAction }}
-            >
-              <Calendar className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }} />
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
+              <Calendar className="w-6 h-6" style={{ color: '#ffffff' }} />
             </div>
           </div>
         </div>
 
-        <div 
-          className="p-6 rounded-lg border"
-          style={{ 
-            backgroundColor: colors.bgSurface,
-            borderColor: colors.border
-          }}
-        >
+        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Promedio Mensual</p>
-              <h3 className="text-3xl text-foreground">${(totalSpent / 6).toFixed(2)}</h3>
-              <p className="text-xs text-muted-foreground mt-1">Últimos 6 meses</p>
+              <h3 className="text-3xl text-foreground">
+                {sym}{monthlyTrend.length > 0 ? toDisplay(monthlyTrend.reduce((s, m) => s + m.amount, 0) / monthlyTrend.length) : '0.00'}
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">Últimos {monthlyTrend.length} meses</p>
             </div>
-            <div 
-              className="w-12 h-12 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: colors.primaryAction }}
-            >
-              <TrendingUp className="w-6 h-6 text-foreground" style={{ color: '#ffffff' }} />
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
+              <TrendingUp className="w-6 h-6" style={{ color: '#ffffff' }} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Trend Chart */}
-        <div 
-          className="p-6 rounded-lg border"
-          style={{ 
-            backgroundColor: colors.bgSurface,
-            borderColor: colors.border
-          }}
-        >
+        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <h3 className="text-lg text-foreground mb-6">Tendencia de Gastos Mensuales</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={monthlyTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke={colors.border} />
-              <XAxis 
-                dataKey="month" 
-                stroke={colors.textSecondary}
-                tick={{ fill: colors.textSecondary }}
-              />
-              <YAxis 
-                stroke={colors.textSecondary}
-                tick={{ fill: colors.textSecondary }}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: colors.bgSurface,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: '8px',
-                  color: colors.textPrimary
-                }}
-                itemStyle={{ color: colors.textPrimary }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="amount" 
-                stroke={colors.textMuted} 
-                strokeWidth={2}
-                dot={{ fill: colors.primaryAction, r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {monthlyTrend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={convertedTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke={colors.border} />
+                <XAxis dataKey="month" stroke={colors.textSecondary} tick={{ fill: colors.textSecondary }} />
+                <YAxis stroke={colors.textSecondary} tick={{ fill: colors.textSecondary }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: colors.bgSurface, border: `1px solid ${colors.border}`, borderRadius: '8px', color: colors.textPrimary }}
+                  itemStyle={{ color: colors.textPrimary }}
+                />
+                <Line type="monotone" dataKey="amount" stroke={colors.textMuted} strokeWidth={2} dot={{ fill: colors.primaryAction, r: 4 }} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-48">
+              <p className="text-secondary">Sin historial de gastos aún</p>
+            </div>
+          )}
         </div>
 
-        {/* Category Breakdown Pie Chart */}
-        <div 
-          className="p-6 rounded-lg border"
-          style={{ 
-            backgroundColor: colors.bgSurface,
-            borderColor: colors.border
-          }}
-        >
-          <h3 className="text-lg text-foreground mb-6">Gastos por Categoría</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={categoryBreakdown}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {categoryBreakdown.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: colors.bgSurface,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: '8px',
-                  color: colors.textPrimary
-                }}
-                itemStyle={{ color: colors.textPrimary }}
-              />
-              <Legend
-                wrapperStyle={{ color: colors.textSecondary }}
-                iconType="circle"
-              />
-            </PieChart>
-          </ResponsiveContainer>
+        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+          <h3 className="text-lg text-foreground mb-6">Gastos por Suscripción</h3>
+          {categoryBreakdown.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={categoryBreakdown}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => (percent ?? 0) >= 0.05 ? `${name}: ${((percent ?? 0) * 100).toFixed(0)}%` : ''}
+                  outerRadius={100}
+                  dataKey="value"
+                >
+                  {categoryBreakdown.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ backgroundColor: colors.bgSurface, border: `1px solid ${colors.border}`, borderRadius: '8px', color: colors.textPrimary }}
+                  itemStyle={{ color: colors.textPrimary }}
+                />
+                <Legend wrapperStyle={{ color: colors.textSecondary }} iconType="circle" />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-48">
+              <p className="text-secondary">Sin datos de pagos aún</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Payment History Table */}
-      <div 
-        className="rounded-lg border overflow-hidden"
-        style={{ 
-          backgroundColor: colors.bgSurface,
-          borderColor: 'rgba(255, 255, 255, 0.1)'
-        }}
-      >
+      <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: colors.bgSurface, borderColor: 'rgba(255, 255, 255, 0.1)' }}>
         <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${colors.border}` }}>
           <h3 className="text-lg text-foreground">Historial de Pagos</h3>
           <button
-            onClick={() => setIsPaymentFormOpen(true)}
+            onClick={handleOpenPaymentForm}
             className="px-4 py-2 rounded-lg flex items-center gap-2 transition-all hover:opacity-90"
             style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
           >
@@ -253,43 +261,65 @@ export function FinancialHistory() {
               <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
                 <th className="text-left px-6 py-4 text-secondary font-medium">Fecha</th>
                 <th className="text-left px-6 py-4 text-secondary font-medium">Servicio</th>
-                <th className="text-left px-6 py-4 text-secondary font-medium">Categoría</th>
                 <th className="text-left px-6 py-4 text-secondary font-medium">Método de Pago</th>
                 <th className="text-right px-6 py-4 text-secondary font-medium">Monto</th>
+                <th className="text-center px-6 py-4 text-secondary font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {paymentHistory.map((payment) => (
-                <tr 
-                  key={payment.id}
-                  style={{ borderBottom: `1px solid ${colors.border}` }}
-                  className="hover:bg-primary/20 transition-colors"
-                >
+                <tr key={payment.id} style={{ borderBottom: `1px solid ${colors.border}` }} className="hover:bg-primary/20 transition-colors">
                   <td className="px-6 py-4 text-secondary">
-                    {new Date(payment.date).toLocaleDateString('es-ES', { 
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric'
-                    })}
+                    {new Date(payment.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </td>
                   <td className="px-6 py-4 text-foreground">{payment.service}</td>
-                  <td className="px-6 py-4 text-secondary">{payment.category}</td>
                   <td className="px-6 py-4 text-secondary">{payment.method}</td>
-                  <td className="px-6 py-4 text-right text-foreground">${payment.amount}</td>
+                  <td className="px-6 py-4 text-right text-foreground">{sym}{toDisplay(payment.amount)}</td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleEditPayment(payment)}
+                        aria-label={`Editar pago de ${payment.service}`}
+                        className="p-2 rounded-lg hover:opacity-80 transition-all"
+                        style={{ backgroundColor: colors.primaryAction, color: '#ffffff' }}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePayment(payment.id)}
+                        aria-label={`Eliminar pago de ${payment.service}`}
+                        className="p-2 rounded-lg hover:opacity-80 transition-all"
+                        style={{ backgroundColor: colors.destructive, color: '#ffffff' }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {paymentHistory.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-secondary">Sin pagos registrados aún</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Payment History Form Modal */}
       <PaymentHistoryForm
         isOpen={isPaymentFormOpen}
-        onClose={() => setIsPaymentFormOpen(false)}
+        onClose={() => { setIsPaymentFormOpen(false); setEditingPayment(null); }}
         onSave={handleSavePayment}
-        subscriptions={mockSubscriptions}
-        paymentMethods={mockPaymentMethods}
+        subscriptions={formData.suscripciones}
+        paymentMethods={formData.metodosPago}
+        editData={editingPayment ? {
+          id: editingPayment.id,
+          service: editingPayment.service,
+          method: editingPayment.method,
+          date: editingPayment.date,
+          amount: editingPayment.amount,
+        } : null}
       />
     </div>
   );

@@ -6,6 +6,8 @@ interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
+  currency: string;
+  setCurrency: (c: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -13,8 +15,17 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem("theme");
-    return (saved as Theme) || "dark";
+    return (saved as Theme) || "light";
   });
+
+  const [currency, setCurrencyState] = useState<string>(() => {
+    return localStorage.getItem("currency") || "USD";
+  });
+
+  const setCurrency = (c: string) => {
+    setCurrencyState(c);
+    localStorage.setItem("currency", c);
+  };
 
   useEffect(() => {
     const root = document.documentElement;
@@ -32,7 +43,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme, currency, setCurrency }}>
       {children}
     </ThemeContext.Provider>
   );

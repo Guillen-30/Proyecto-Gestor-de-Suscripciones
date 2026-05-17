@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useThemeColors } from "../hooks/useThemeColors";
+import { login } from "../lib/api";
 
 export function Login() {
   const navigate = useNavigate();
@@ -12,11 +13,23 @@ export function Login() {
     password: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in real app, validate credentials
-    localStorage.setItem("isAuthenticated", "true");
-    navigate("/");
+    setError("");
+    setIsLoading(true);
+    try {
+      const data = await login(formData.email, formData.password);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -90,13 +103,18 @@ export function Login() {
             </button>
           </div>
 
+          {error && (
+            <p className="text-sm text-center" style={{ color: colors.destructive }}>{error}</p>
+          )}
+
           <button
             type="submit"
-            className="w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-all hover:opacity-90"
+            disabled={isLoading}
+            className="w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-60"
             style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
           >
             <LogIn className="w-5 h-5" />
-            Iniciar Sesión
+            {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </button>
         </form>
 

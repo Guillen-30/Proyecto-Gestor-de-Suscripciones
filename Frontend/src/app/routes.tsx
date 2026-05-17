@@ -12,12 +12,8 @@ import { PaymentMethods } from "./components/PaymentMethods";
 
 // Protected Route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = localStorage.getItem("isAuthenticated");
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
+  const token = localStorage.getItem("token");
+  if (!token) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 

@@ -1,7 +1,11 @@
 import { Plus, Edit, Trash2, CreditCard, Wallet } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PaymentMethodForm } from "./PaymentMethodForm";
 import { useThemeColors } from "../hooks/useThemeColors";
+import {
+  getPaymentMethods, getPaymentTypes,
+  createPaymentMethod, updatePaymentMethod, deletePaymentMethod,
+} from "../lib/api";
 
 interface PaymentMethod {
   id: number;
@@ -15,19 +19,37 @@ export function PaymentMethods() {
   const colors = useThemeColors();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
-  const [methods, setMethods] = useState<PaymentMethod[]>([
-    { id: 1, alias: "Tarjeta Visa Principal", type: "Tarjeta de Crédito", details: "Termina en 1234", isDefault: true },
-    { id: 2, alias: "Mastercard Personal", type: "Tarjeta de Débito", details: "Termina en 5678", isDefault: false },
-    { id: 3, alias: "PayPal Business", type: "Cartera Digital", details: "business@email.com", isDefault: false },
-  ]);
+  const [methods, setMethods] = useState<PaymentMethod[]>([]);
+  const [paymentTypes, setPaymentTypes] = useState<Array<{ id: number; description: string }>>([]);
 
-  const handleSave = (method: PaymentMethod) => {
-    if (editingMethod) {
-      setMethods(methods.map(m => m.id === method.id ? method : m));
-    } else {
-      setMethods([...methods, { ...method, isDefault: methods.length === 0 }]);
+  async function loadData() {
+    try {
+      const [methodsData, typesData] = await Promise.all([
+        getPaymentMethods(),
+        getPaymentTypes(),
+      ]);
+      setMethods(methodsData.metodosPago);
+      setPaymentTypes(typesData.tipos);
+    } catch (err) {
+      console.error("Error cargando métodos de pago:", err);
     }
-    setEditingMethod(null);
+  }
+
+  useEffect(() => { loadData(); }, []);
+
+  const handleSave = async (method: any) => {
+    try {
+      const tipoId = paymentTypes.find(t => t.description === method.type)?.id ?? paymentTypes[0]?.id ?? 1;
+      if (editingMethod) {
+        await updatePaymentMethod(editingMethod.id, { tipoId, alias: method.alias });
+      } else {
+        await createPaymentMethod({ tipoId, alias: method.alias });
+      }
+      setEditingMethod(null);
+      await loadData();
+    } catch (err) {
+      alert("Error: " + (err as Error).message);
+    }
   };
 
   const handleEdit = (method: PaymentMethod) => {
@@ -35,22 +57,19 @@ export function PaymentMethods() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm("¿Estás seguro de eliminar este método de pago?")) {
-      setMethods(methods.filter(method => method.id !== id));
+  const handleDelete = async (id: number) => {
+    if (!confirm("¿Estás seguro de eliminar este método de pago?")) return;
+    try {
+      await deletePaymentMethod(id);
+      await loadData();
+    } catch (err) {
+      alert("Error: " + (err as Error).message);
     }
   };
 
   const handleAddNew = () => {
     setEditingMethod(null);
     setIsFormOpen(true);
-  };
-
-  const setDefault = (id: number) => {
-    setMethods(methods.map(method => ({
-      ...method,
-      isDefault: method.id === id
-    })));
   };
 
   return (
@@ -72,59 +91,36 @@ export function PaymentMethods() {
         </button>
       </div>
 
-      {/* Payment Methods List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {methods.map((method) => (
-          <div 
+          <div
             key={method.id}
             className="p-6 rounded-lg border"
-            style={{
-              backgroundColor: colors.bgSurface,
-              borderColor: method.isDefault ? colors.primaryAction : colors.border
-            }}
+            style={{ backgroundColor: colors.bgSurface, borderColor: method.isDefault ? colors.primaryAction : colors.border }}
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3 flex-1">
-                <div 
-                  className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: colors.primaryAction }}
-                >
-                  {method.type.includes("Tarjeta") ? (
-                    <CreditCard className="w-6 h-6 text-foreground" style={{ color: "#FFFFFF" }}/>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.primaryAction }}>
+                  {(method.type || '').includes("Tarjeta") ? (
+                    <CreditCard className="w-6 h-6" style={{ color: "#FFFFFF" }} />
                   ) : (
-                    <Wallet className="w-6 h-6 text-foreground" style={{ color: "#FFFFFF" }} />
+                    <Wallet className="w-6 h-6" style={{ color: "#FFFFFF" }} />
                   )}
                 </div>
                 <div className="min-w-0">
                   <h4 className="text-lg text-foreground truncate">{method.alias}</h4>
                   <p className="text-sm text-muted-foreground">{method.type}</p>
-                  {method.details && (
-                    <p className="text-sm text-secondary mt-1">{method.details}</p>
-                  )}
+                  {method.details && <p className="text-sm text-secondary mt-1">{method.details}</p>}
                 </div>
               </div>
               {method.isDefault && (
-                <span 
-                  className="px-3 py-1 rounded-full text-xs whitespace-nowrap ml-2"
-                  style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
-                >
+                <span className="px-3 py-1 rounded-full text-xs whitespace-nowrap ml-2" style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}>
                   Predeterminado
                 </span>
               )}
             </div>
-            
+
             <div className="flex gap-2">
-              {!method.isDefault && (
-                <button
-                  type="button"
-                  onClick={() => setDefault(method.id)}
-                  aria-label={`Establecer como predeterminado`}
-                  className="flex-1 px-4 py-2 rounded-lg border transition-all hover:opacity-80 text-sm"
-                  style={{ borderColor: colors.textMuted, color: colors.textMuted }}
-                >
-                  Establecer como predeterminado
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => handleEdit(method)}
@@ -149,28 +145,19 @@ export function PaymentMethods() {
       </div>
 
       {methods.length === 0 && (
-        <div 
-          className="text-center py-12 rounded-lg border"
-          style={{
-            backgroundColor: colors.bgSurface,
-            borderColor: colors.border
-          }}
-        >
+        <div className="text-center py-12 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <CreditCard className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
           <p className="text-secondary">No hay métodos de pago registrados</p>
           <p className="text-sm text-muted-foreground mt-2">Agrega tus métodos de pago para gestionar tus suscripciones</p>
         </div>
       )}
 
-      {/* Payment Method Form Modal */}
       <PaymentMethodForm
         isOpen={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setEditingMethod(null);
-        }}
+        onClose={() => { setIsFormOpen(false); setEditingMethod(null); }}
         onSave={handleSave}
         editData={editingMethod}
+        typeOptions={paymentTypes.map(t => t.description)}
       />
     </div>
   );

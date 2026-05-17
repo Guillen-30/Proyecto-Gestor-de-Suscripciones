@@ -3,33 +3,14 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { SubscriptionForm } from "./SubscriptionForm";
 import { useThemeColors } from "../hooks/useThemeColors";
+import { useTheme } from "../contexts/ThemeContext";
+import {
+  getSubscriptions, createSubscription, updateSubscription, deleteSubscription,
+  getSubscriptionFormData,
+} from "../lib/api";
 
-const mockCategories = ["Entretenimiento", "Música", "Productividad", "Desarrollo", "Almacenamiento"];
-const mockPaymentMethods = [
-  { id: 1, alias: "Tarjeta Visa *1234" },
-  { id: 2, alias: "Tarjeta Master *5678" },
-  { id: 3, alias: "PayPal" },
-];
-
-const categoryColors: Record<string, string> = {
-  Entretenimiento: "#f59e0b",
-  Música: "#10b981",
-  Productividad: "#3b82f6",
-  Desarrollo: "#8b5cf6",
-  Almacenamiento: "#06b6d4",
-};
-
-const getCategoryColor = (category: string) => categoryColors[category] || "#6b7d5c";
-
-const categories = ["Todas", ...mockCategories];
-
-const truncateNotes = (notes: string, maxLength = 64) => {
-  if (notes.length <= maxLength) {
-    return notes;
-  }
-
-  return `${notes.slice(0, maxLength - 1)}…`;
-};
+const RATES: Record<string, number> = { USD: 1, EUR: 0.92, CRC: 518, MXN: 17.5 };
+const SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', CRC: '₡', MXN: '$MX ' };
 
 interface SubscriptionItem {
   id: number;
@@ -42,122 +23,111 @@ interface SubscriptionItem {
   billingCycle: string;
   status: string;
   category: string;
+  categoryName?: string;
+  categoryColor?: string;
   paymentMethod: string;
   notes: string;
 }
 
+interface Catalog {
+  categorias: Array<{ id: number; name: string; color: string }>;
+  metodosPago: Array<{ id: number; alias: string }>;
+  ciclosFacturacion: Array<{ id: number; description: string }>;
+  estados: Array<{ id: number; description: string }>;
+}
+
+const truncateNotes = (notes: string, maxLength = 64) =>
+  notes.length <= maxLength ? notes : `${notes.slice(0, maxLength - 1)}…`;
+
 export function Subscriptions() {
   const colors = useThemeColors();
+  const { currency: preferredCurrency } = useTheme();
+  const sym = SYMBOLS[preferredCurrency] ?? preferredCurrency + ' ';
   const location = useLocation();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<any>(null);
-  const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([
-    {
-      id: 1,
-      name: "Netflix",
-      imageUrl: "https://placehold.co/80x80/E50914/FFFFFF?text=N",
-      imageAlt: "Logo de Netflix",
-      cost: 15.99,
-      currency: "USD",
-      billingDate: "2026-04-15",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Entretenimiento",
-      paymentMethod: "Tarjeta Visa *1234",
-      notes: "Plan Premium - 4 pantallas",
-    },
-    {
-      id: 2,
-      name: "Spotify",
-      imageUrl: "https://placehold.co/80x80/1DB954/FFFFFF?text=S",
-      imageAlt: "Logo de Spotify",
-      cost: 9.99,
-      currency: "USD",
-      billingDate: "2026-04-10",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Música",
-      paymentMethod: "Tarjeta Master *5678",
-      notes: "Plan Individual",
-    },
-    {
-      id: 3,
-      name: "Adobe Creative Cloud",
-      imageUrl: "https://placehold.co/80x80/FF0000/FFFFFF?text=A",
-      imageAlt: "Logo de Adobe Creative Cloud",
-      cost: 52.99,
-      currency: "USD",
-      billingDate: "2026-04-20",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Productividad",
-      paymentMethod: "Tarjeta Visa *1234",
-      notes: "Todas las aplicaciones",
-    },
-    {
-      id: 4,
-      name: "Amazon Prime",
-      imageUrl: "https://placehold.co/80x80/FF9900/FFFFFF?text=P",
-      imageAlt: "Logo de Amazon Prime",
-      cost: 14.99,
-      currency: "USD",
-      billingDate: "2026-04-08",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Entretenimiento",
-      paymentMethod: "Tarjeta Visa *1234",
-      notes: "Envío gratis + Prime Video",
-    },
-    {
-      id: 5,
-      name: "GitHub Pro",
-      imageUrl: "https://placehold.co/80x80/24292E/FFFFFF?text=G",
-      imageAlt: "Logo de GitHub Pro",
-      cost: 7.00,
-      currency: "USD",
-      billingDate: "2026-04-12",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Desarrollo",
-      paymentMethod: "Tarjeta Master *5678",
-      notes: "Repositorios privados ilimitados",
-    },
-    {
-      id: 6,
-      name: "Dropbox",
-      imageUrl: "https://placehold.co/80x80/0061FF/FFFFFF?text=D",
-      imageAlt: "Logo de Dropbox",
-      cost: 11.99,
-      currency: "USD",
-      billingDate: "2026-04-18",
-      billingCycle: "Mensual",
-      status: "Activa",
-      category: "Almacenamiento",
-      paymentMethod: "PayPal",
-      notes: "2TB de almacenamiento",
-    },
-  ]);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([]);
+  const [catalog, setCatalog] = useState<Catalog | null>(null);
 
-  const handleSaveSubscription = (subscription: any) => {
-    if (editingSubscription) {
-      setSubscriptions(subscriptions.map(s => s.id === subscription.id ? subscription : s));
-    } else {
-      setSubscriptions([...subscriptions, subscription]);
+  async function loadAll() {
+    try {
+      const [subsData, catalogData] = await Promise.all([
+        getSubscriptions(),
+        getSubscriptionFormData(),
+      ]);
+      setCatalog(catalogData);
+      setSubscriptions(subsData.suscripciones.map((s: any) => ({
+        ...s,
+        category: s.categoryName || '',
+        currency: 'USD',
+        notes: '',
+      })));
+    } catch (err) {
+      console.error("Error cargando suscripciones:", err);
     }
-    setEditingSubscription(null);
+  }
+
+  useEffect(() => {
+    loadAll();
+    const handler = () => loadAll();
+    window.addEventListener('subscription-saved', handler);
+    return () => window.removeEventListener('subscription-saved', handler);
+  }, []);
+
+  const handleSaveSubscription = async (formData: any) => {
+    if (!catalog) return;
+    try {
+      const categoriaId = catalog.categorias.find(c => c.name === formData.category)?.id ?? null;
+      const cicloId = catalog.ciclosFacturacion.find(c => c.description === formData.billingCycle)?.id ?? null;
+      const estadoId = catalog.estados.find(e => e.description === formData.status)?.id ?? null;
+      const metodoPagoId = catalog.metodosPago.find(m => m.alias === formData.paymentMethod)?.id ?? null;
+
+      if (!cicloId) { alert(`Ciclo de facturación no reconocido: "${formData.billingCycle}"`); return; }
+      if (!estadoId) { alert(`Estado no reconocido: "${formData.status}"`); return; }
+      if (!metodoPagoId) { alert('Selecciona un método de pago válido.'); return; }
+
+      const body = {
+        metodoDePagoId: metodoPagoId,
+        cicloFacturacionId: cicloId,
+        estadoId,
+        categoriaId,
+        descripcion: formData.name,
+        costo: formData.cost,
+        fechaRenovacion: formData.billingDate || formData.nextBillingDate,
+        imageUrl: formData.imageUrl || null,
+        imageAlt: formData.imageAlt || null,
+      };
+
+      if (editingSubscription) {
+        await updateSubscription(editingSubscription.id, body);
+      } else {
+        await createSubscription(body);
+      }
+      setEditingSubscription(null);
+      await loadAll();
+    } catch (err) {
+      alert("Error: " + (err as Error).message);
+    }
   };
 
-  const handleEdit = (subscription: any) => {
-    setEditingSubscription(subscription);
+  const handleEdit = (sub: SubscriptionItem) => {
+    setEditingSubscription({
+      ...sub,
+      category: sub.categoryName || sub.category || '',
+    });
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm("¿Estás seguro de eliminar esta suscripción?")) {
-      setSubscriptions(subscriptions.filter(s => s.id !== id));
+  const handleDelete = async (id: number) => {
+    if (!confirm("¿Estás seguro de eliminar esta suscripción?")) return;
+    try {
+      await deleteSubscription(id);
+      await loadAll();
+    } catch (err) {
+      alert("Error: " + (err as Error).message);
     }
   };
 
@@ -166,32 +136,34 @@ export function Subscriptions() {
     setIsFormOpen(true);
   };
 
-  // Open edit form when navigated here with state.editId
   useEffect(() => {
-    const editId = (location && (location as any).state && (location as any).state.editId) || null;
+    const editId = (location?.state as any)?.editId;
     if (editId) {
-      const sub = subscriptions.find((s) => s.id === editId);
+      const sub = subscriptions.find(s => s.id === editId);
       if (sub) {
-        setEditingSubscription(sub);
+        setEditingSubscription({ ...sub, category: sub.categoryName || sub.category || '' });
         setIsFormOpen(true);
-        // clear navigation state to avoid reopening
         navigate(location.pathname, { replace: true, state: {} });
       }
     }
   }, [location, subscriptions, navigate]);
 
+  const categoryOptions = ["Todas", ...(catalog?.categorias.map(c => c.name) ?? [])];
+
   const filteredSubscriptions = subscriptions.filter(sub => {
-    const matchesSearch = sub.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (sub.name ?? '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "Todas" || sub.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
+  const getCategoryColor = (sub: SubscriptionItem) =>
+    sub.categoryColor || catalog?.categorias.find(c => c.name === sub.category)?.color || '#6b7d5c';
+
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
       <div className="flex flex-col md:flex-row gap-4 justify-between">
         <div className="flex gap-4 flex-1">
-            <div 
+          <div
             className="flex items-center gap-2 px-4 py-2 rounded-lg flex-1 max-w-md"
             style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}
           >
@@ -212,7 +184,7 @@ export function Subscriptions() {
             className="px-4 py-2 rounded-lg outline-none text-foreground"
             style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}
           >
-            {categories.map(cat => (
+            {categoryOptions.map(cat => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
@@ -229,13 +201,9 @@ export function Subscriptions() {
         </button>
       </div>
 
-      {/* Subscriptions Table */}
-      <div 
+      <div
         className="rounded-lg border overflow-hidden"
-        style={{ 
-          borderColor: 'rgba(255, 255, 255, 0.1)',
-          backgroundColor: colors.bgSurface,
-        }}
+        style={{ borderColor: 'rgba(255, 255, 255, 0.1)', backgroundColor: colors.bgSurface }}
       >
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -253,7 +221,7 @@ export function Subscriptions() {
             </thead>
             <tbody>
               {filteredSubscriptions.map((sub) => (
-                <tr 
+                <tr
                   key={sub.id}
                   style={{ borderBottom: `1px solid ${colors.border}` }}
                   className="hover:bg-primary/20 transition-colors"
@@ -262,16 +230,12 @@ export function Subscriptions() {
                     <div className="flex items-center gap-3">
                       <div
                         className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center"
-                        style={{ backgroundColor: getCategoryColor(sub.category) }}
+                        style={{ backgroundColor: getCategoryColor(sub) }}
                       >
                         {sub.imageUrl ? (
-                          <img
-                            src={sub.imageUrl}
-                            alt={sub.imageAlt || sub.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={sub.imageUrl} alt={sub.imageAlt || sub.name} className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-foreground">{sub.name.charAt(0)}</span>
+                          <span className="text-white">{sub.name?.charAt(0)}</span>
                         )}
                       </div>
                       <div>
@@ -282,7 +246,7 @@ export function Subscriptions() {
                   </td>
                   <td className="px-6 py-4 text-secondary">{sub.category}</td>
                   <td className="px-6 py-4 text-foreground">
-                    ${sub.cost} <span className="text-muted-foreground">{sub.currency}</span>
+                    {sym}{((parseFloat(String(sub.cost)) / RATES.USD) * (RATES[preferredCurrency] ?? 1)).toFixed(2)}
                   </td>
                   <td className="px-6 py-4 text-secondary">{sub.billingCycle}</td>
                   <td className="px-6 py-4 text-secondary">
@@ -290,19 +254,16 @@ export function Subscriptions() {
                   </td>
                   <td className="px-6 py-4 text-secondary">{sub.paymentMethod}</td>
                   <td className="px-6 py-4">
-                    <span 
+                    <span
                       className="px-3 py-1 rounded-full text-xs"
-                      style={{
-                        backgroundColor: colors.primaryAction,
-                        color: colors.primaryForeground
-                      }}
+                      style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
                     >
                       {sub.status}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <button 
+                      <button
                         type="button"
                         onClick={() => handleEdit(sub)}
                         aria-label={`Editar ${sub.name}`}
@@ -311,7 +272,7 @@ export function Subscriptions() {
                       >
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => handleDelete(sub.id)}
                         aria-label={`Eliminar ${sub.name}`}
@@ -330,28 +291,21 @@ export function Subscriptions() {
       </div>
 
       {filteredSubscriptions.length === 0 && (
-        <div 
+        <div
           className="text-center py-12 rounded-lg border"
-          style={{ 
-            borderColor: 'rgba(255, 255, 255, 0.1)',
-            backgroundColor: colors.bgSurface,
-          }}
+          style={{ borderColor: 'rgba(255, 255, 255, 0.1)', backgroundColor: colors.bgSurface }}
         >
           <p className="text-secondary">No se encontraron suscripciones</p>
         </div>
       )}
 
-      {/* Subscription Form Modal */}
       <SubscriptionForm
         isOpen={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setEditingSubscription(null);
-        }}
+        onClose={() => { setIsFormOpen(false); setEditingSubscription(null); }}
         onSave={handleSaveSubscription}
         editData={editingSubscription}
-        categories={mockCategories}
-        paymentMethods={mockPaymentMethods}
+        categories={catalog?.categorias.map(c => c.name) ?? []}
+        paymentMethods={catalog?.metodosPago ?? []}
       />
     </div>
   );

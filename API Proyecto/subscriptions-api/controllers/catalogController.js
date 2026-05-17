@@ -12,10 +12,9 @@ const getSubscriptionFormData = async (req, res) => {
                 .input('UsuarioID', sql.Int, usuarioId)
                 .query('SELECT ID AS id, Nombre AS name, Color AS color FROM Categoria WHERE UsuarioID = @UsuarioID ORDER BY Nombre ASC'),
             
-            // 2. Métodos de pago (¡NUEVO FILTRO APLICADO!)
+            // 2. Métodos de pago
             pool.request()
-                .input('UsuarioID', sql.Int, usuarioId)
-                .query('SELECT ID AS id, Alias AS alias FROM MetodoDePago WHERE UsuarioID = @UsuarioID ORDER BY Alias ASC'),
+                .query('SELECT ID AS id, Alias AS alias FROM MetodoDePago ORDER BY Alias ASC'),
             
             // 3. Ciclos de facturación (Catálogo global)
             pool.request()

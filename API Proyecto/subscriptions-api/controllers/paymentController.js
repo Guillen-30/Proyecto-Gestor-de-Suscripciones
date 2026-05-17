@@ -19,8 +19,7 @@ const getPaymentFormData = async (req, res) => {
                     WHERE s.UsuarioID = @UsuarioID AND e.Descripcion <> 'Cancelada'
                 `),
             pool.request()
-                .input('UsuarioID2', sql.Int, usuarioId)
-                .query('SELECT ID, Alias FROM MetodoDePago WHERE UsuarioID = @UsuarioID2 ORDER BY Alias ASC')
+                .query('SELECT ID, Alias FROM MetodoDePago ORDER BY Alias ASC')
         ]);
         
         res.json({ suscripciones: subscriptions.recordset, metodosPago: paymentMethods.recordset });
@@ -74,11 +73,11 @@ const getHistory = async (req, res) => {
         const result = await pool.request()
             .input('UsuarioID', sql.Int, usuarioId)
             .query(`
-                SELECT h.ID, h.Fecha, h.Monto, s.Descripcion AS Suscripcion, mp.Alias AS MetodoPago
+                SELECT h.ID, h.Fecha, h.Monto, h.SuscripcionID, s.Descripcion AS Suscripcion, mp.Alias AS MetodoPago
                 FROM HistorialDePago h
                 INNER JOIN Suscripcion s ON h.SuscripcionID = s.ID
                 INNER JOIN MetodoDePago mp ON s.MetodoDePagoID = mp.ID
-                WHERE h.UsuarioID = @UsuarioID 
+                WHERE h.UsuarioID = @UsuarioID
                 ORDER BY h.Fecha DESC
             `);
         res.json({ historial: result.recordset });
@@ -125,4 +124,55 @@ const getUpcomingSubscriptions = async (req, res) => {
     }
 };
 
-module.exports = { getPaymentFormData, registerPayment, getHistory, getUpcomingSubscriptions };
+// ==========================================
+// EDITAR PAGO DEL HISTORIAL
+// ==========================================
+const updatePayment = async (req, res) => {
+    const { id } = req.params;
+    const usuarioId = req.user.id;
+    const { monto, fecha } = req.body;
+    try {
+        const pool = await connectDB();
+        const result = await pool.request()
+            .input('ID', sql.Int, id)
+            .input('UsuarioID', sql.Int, usuarioId)
+            .input('Monto', sql.Decimal(10, 2), monto)
+            .input('Fecha', sql.Date, fecha)
+            .query(`
+                UPDATE HistorialDePago
+                SET Monto = @Monto, Fecha = @Fecha
+                WHERE ID = @ID AND UsuarioID = @UsuarioID
+            `);
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({ error: 'Pago no encontrado o sin permisos' });
+        }
+        res.json({ message: 'Pago actualizado correctamente' });
+    } catch (error) {
+        console.error('Error al actualizar pago:', error);
+        res.status(500).json({ error: 'Error al actualizar el pago' });
+    }
+};
+
+// ==========================================
+// ELIMINAR PAGO DEL HISTORIAL
+// ==========================================
+const deletePayment = async (req, res) => {
+    const { id } = req.params;
+    const usuarioId = req.user.id;
+    try {
+        const pool = await connectDB();
+        const result = await pool.request()
+            .input('ID', sql.Int, id)
+            .input('UsuarioID', sql.Int, usuarioId)
+            .query('DELETE FROM HistorialDePago WHERE ID = @ID AND UsuarioID = @UsuarioID');
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({ error: 'Pago no encontrado o sin permisos' });
+        }
+        res.json({ message: 'Pago eliminado correctamente' });
+    } catch (error) {
+        console.error('Error al eliminar pago:', error);
+        res.status(500).json({ error: 'Error al eliminar el pago' });
+    }
+};
+
+module.exports = { getPaymentFormData, registerPayment, getHistory, getUpcomingSubscriptions, deletePayment, updatePayment };

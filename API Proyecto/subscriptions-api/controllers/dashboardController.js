@@ -86,14 +86,14 @@ const getUpcomingPayments = async (req, res) => {
         // Extraemos el más próximo (el primero de la lista)
         const proximoPago = todasPendientes.length > 0 ? todasPendientes[0] : null;
         
-        // Filtramos para obtener los que ocurren dentro de los próximos 7 días
+        // Filtramos para obtener los que ocurren dentro de los próximos 30 días
         const hoy = new Date();
-        const enUnaSemana = new Date();
-        enUnaSemana.setDate(hoy.getDate() + 7);
-        
+        const en30Dias = new Date();
+        en30Dias.setDate(hoy.getDate() + 30);
+
         const pagosDeLaSemana = todasPendientes.filter(sub => {
-            const fecha = new Date(sub.FechaRenovacion);
-            return fecha >= hoy && fecha <= enUnaSemana;
+            const fecha = new Date(sub.billingDate);
+            return fecha >= hoy && fecha <= en30Dias;
         });
         
         res.json({ proximoPago, pagosDeLaSemana });
@@ -118,16 +118,15 @@ const getExpensesPast6Months = async (req, res) => {
         const result = await pool.request()
             .input('UsuarioID', sql.Int, usuarioId)
             .query(`
-                SET LANGUAGE Spanish; 
-                
-                SELECT 
-                    LEFT(DATENAME(MONTH, Fecha), 3) AS month, 
+                SET LANGUAGE Spanish;
+
+                SELECT
+                    LEFT(DATENAME(MONTH, Fecha), 3) + ' ' + CAST(YEAR(Fecha) AS NVARCHAR) AS month,
                     SUM(Monto) AS amount,
                     YEAR(Fecha) AS year_num,
                     MONTH(Fecha) AS month_num
-                FROM HistorialDePago 
-                WHERE UsuarioID = @UsuarioID 
-                  AND Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 5, 0)
+                FROM HistorialDePago
+                WHERE UsuarioID = @UsuarioID
                 GROUP BY YEAR(Fecha), MONTH(Fecha), DATENAME(MONTH, Fecha)
                 ORDER BY YEAR(Fecha) ASC, MONTH(Fecha) ASC
             `);

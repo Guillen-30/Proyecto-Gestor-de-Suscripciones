@@ -1,6 +1,8 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useThemeColors } from "../hooks/useThemeColors";
+import { useTheme } from "../contexts/ThemeContext";
+
 
 interface SubscriptionFormProps {
   isOpen: boolean;
@@ -11,16 +13,28 @@ interface SubscriptionFormProps {
   paymentMethods: Array<{ id: number; alias: string }>;
 }
 
+const RATES: Record<string, number> = { USD: 1, EUR: 0.92, CRC: 518, MXN: 17.5 };
+
 export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories, paymentMethods }: SubscriptionFormProps) {
   const colors = useThemeColors();
+  const { currency: preferredCurrency } = useTheme();
+
+  const toDateInput = (d: string) => d ? String(d).split('T')[0] : '';
+
   const createInitialFormData = (data?: any) => data ? {
     ...data,
-    nextBillingDate: data.nextBillingDate || data.billingDate || "",
+    currency: preferredCurrency,
+    cost: data.cost
+      ? (parseFloat(String(data.cost)) * (RATES[preferredCurrency] ?? 1)).toFixed(2)
+      : '',
+    nextBillingDate: data.nextBillingDate
+      ? toDateInput(data.nextBillingDate)
+      : toDateInput(data.billingDate),
   } : {
     name: "",
     category: "",
     cost: "",
-    currency: "USD",
+    currency: preferredCurrency,
     billingCycle: "Mensual",
     nextBillingDate: "",
     paymentMethod: "",
@@ -38,10 +52,11 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const rate = RATES[preferredCurrency] ?? 1;
     onSave({
       ...formData,
       id: editData?.id || Date.now(),
-      cost: parseFloat(formData.cost),
+      cost: parseFloat(formData.cost) / rate,
       billingDate: formData.nextBillingDate,
     });
     onClose();
@@ -127,9 +142,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
                 style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
               >
                 <option value="Semanal">Semanal</option>
-                <option value="Quincenal">Quincenal</option>
                 <option value="Mensual">Mensual</option>
-                <option value="Bimestral">Bimestral</option>
                 <option value="Trimestral">Trimestral</option>
                 <option value="Semestral">Semestral</option>
                 <option value="Anual">Anual</option>
@@ -153,18 +166,15 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
 
             <div>
               <label className="text-sm text-secondary mb-2 block">Moneda</label>
-              <select
-                aria-label="Moneda"
-                value={formData.currency}
-                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg outline-none"
-                style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
+              <div
+                className="w-full px-4 py-3 rounded-lg text-sm"
+                style={{ backgroundColor: colors.bgBase, color: colors.textPrimary, opacity: 0.7 }}
               >
-                <option value="USD">USD - Dólar</option>
-                <option value="EUR">EUR - Euro</option>
-                <option value="CRC">CRC - Colón</option>
-                <option value="MXN">MXN - Peso</option>
-              </select>
+                {preferredCurrency === 'USD' && 'USD - Dólar'}
+                {preferredCurrency === 'EUR' && 'EUR - Euro'}
+                {preferredCurrency === 'CRC' && 'CRC - Colón'}
+                {preferredCurrency === 'MXN' && 'MXN - Peso'}
+              </div>
             </div>
 
             <div>

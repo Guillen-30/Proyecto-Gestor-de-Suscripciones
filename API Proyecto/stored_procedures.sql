@@ -433,17 +433,17 @@ BEGIN
         INNER JOIN cicloFacturacion cf ON cf.ID = s.cicloFacturacionID
         WHERE s.ID = @SuscripcionID;
 
-        DECLARE @FechaActual DATE;
-        SELECT @FechaActual = FechaRenovacion FROM Suscripcion WHERE ID = @SuscripcionID;
-
+        -- Avanzar desde la fecha del pago, no desde FechaRenovacion guardada
         DECLARE @NuevaFecha DATE;
         SET @NuevaFecha = CASE @CicloDesc
-            WHEN 'Semanal'    THEN DATEADD(WEEK,  1, @FechaActual)
-            WHEN 'Mensual'    THEN DATEADD(MONTH, 1, @FechaActual)
-            WHEN 'Trimestral' THEN DATEADD(MONTH, 3, @FechaActual)
-            WHEN 'Semestral'  THEN DATEADD(MONTH, 6, @FechaActual)
-            WHEN 'Anual'      THEN DATEADD(YEAR,  1, @FechaActual)
-            ELSE @FechaActual
+            WHEN 'Semanal'    THEN DATEADD(DAY,   7, @Fecha)
+            WHEN 'Quincenal'  THEN DATEADD(DAY,  15, @Fecha)
+            WHEN 'Mensual'    THEN DATEADD(MONTH, 1, @Fecha)
+            WHEN 'Bimestral'  THEN DATEADD(MONTH, 2, @Fecha)
+            WHEN 'Trimestral' THEN DATEADD(MONTH, 3, @Fecha)
+            WHEN 'Semestral'  THEN DATEADD(MONTH, 6, @Fecha)
+            WHEN 'Anual'      THEN DATEADD(YEAR,  1, @Fecha)
+            ELSE DATEADD(MONTH, 1, @Fecha)
         END;
 
         UPDATE Suscripcion

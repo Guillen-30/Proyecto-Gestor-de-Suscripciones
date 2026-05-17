@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, User, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useThemeColors } from "../hooks/useThemeColors";
+import { registerUser } from "../lib/api";
 
 export function Register() {
   const navigate = useNavigate();
@@ -15,17 +16,25 @@ export function Register() {
     confirmPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (formData.password !== formData.confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      setError("Las contraseñas no coinciden");
       return;
     }
-
-    // Mock registration - in real app, create user
-    localStorage.setItem("isAuthenticated", "true");
-    navigate("/");
+    setError("");
+    setIsLoading(true);
+    try {
+      await registerUser(formData.name, formData.email, formData.password);
+      navigate("/login");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -134,13 +143,18 @@ export function Register() {
             </div>
           </div>
 
+          {error && (
+            <p className="text-sm text-center" style={{ color: colors.destructive }}>{error}</p>
+          )}
+
           <button
             type="submit"
-            className="w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-all hover:opacity-90"
+            disabled={isLoading}
+            className="w-full px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-60"
             style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
           >
             <UserPlus className="w-5 h-5" />
-            Crear Cuenta
+            {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
           </button>
         </form>
 

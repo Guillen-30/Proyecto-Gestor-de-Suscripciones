@@ -36,7 +36,8 @@ const createSubscription = async (req, res) => {
         });
     } catch (error) {
         console.error('Error al crear suscripción:', error);
-        res.status(500).json({ error: 'Error al crear la suscripción. Verifica los datos enviados.' });
+        const msg = error?.originalError?.info?.message || error?.message || 'Error al crear la suscripción';
+        res.status(500).json({ error: msg });
     }
 };
 
