@@ -120,7 +120,6 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
                 aria-label="Categoría"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                required
                 className="w-full px-4 py-3 rounded-lg outline-none"
                 style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
               >

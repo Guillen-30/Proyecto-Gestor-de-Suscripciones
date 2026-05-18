@@ -1,8 +1,12 @@
 import { User, Bell, Shield, Moon, Sun, Globe, Check, AlertCircle } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useState, useEffect } from "react";
-import { getSubscriptions, updateUser } from "../lib/api";
+import { useNavigate } from "react-router";
+import { getSubscriptions, updateUser, deleteUser } from "../lib/api";
 import { NOTIF_PREFS_KEY } from "./NotificationsModal";
+import { useThemeColors } from "../hooks/useThemeColors";
+
+
 
 interface NotifPrefs {
   upcomingEnabled: boolean;
@@ -30,6 +34,7 @@ function savePrefs(prefs: NotifPrefs) {
 
 export function AccountSettings() {
   const { theme, toggleTheme, currency, setCurrency } = useTheme();
+  const colors = useThemeColors();
 
   const borderColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
   const inputStyle = {
@@ -44,6 +49,10 @@ export function AccountSettings() {
 
   const [nombre, setNombre] = useState<string>(storedUser.nombre || '');
   const [profileMsg, setProfileMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [currentPassword, setCurrentPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [passwordMsg, setPasswordMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   const handleSaveProfile = async () => {
     try {
@@ -56,16 +65,71 @@ export function AccountSettings() {
     setTimeout(() => setProfileMsg(null), 4000);
   };
 
+  const navigate = useNavigate();
+
+  const handleDeleteAccount = async () => {
+    const ok = window.confirm('¿Estás seguro? Esta acción eliminará tu cuenta y todos tus datos asociados.');
+    if (!ok) return;
+    try {
+      await deleteUser(storedUser.id);
+      // Clear local storage and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/login');
+    } catch (err) {
+      alert('Error al eliminar la cuenta: ' + (err as Error).message);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordMsg({ text: 'Completa todos los campos de contraseña.', ok: false });
+      setTimeout(() => setPasswordMsg(null), 4000);
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordMsg({ text: 'La nueva contraseña debe tener al menos 8 caracteres.', ok: false });
+      setTimeout(() => setPasswordMsg(null), 4000);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMsg({ text: 'La confirmación no coincide con la nueva contraseña.', ok: false });
+      setTimeout(() => setPasswordMsg(null), 4000);
+      return;
+    }
+
+    try {
+      await updateUser(storedUser.id, { contrasena: newPassword });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordMsg({ text: 'Contraseña actualizada correctamente.', ok: true });
+    } catch (err) {
+      setPasswordMsg({ text: 'Error al actualizar contraseña: ' + (err as Error).message, ok: false });
+    }
+
+    setTimeout(() => setPasswordMsg(null), 4000);
+  };
+
   // ── Notification prefs ────────────────────────────────────────────────
   const [prefs, setPrefs] = useState<NotifPrefs>(getPrefs());
   const [subscriptions, setSubscriptions] = useState<Array<{ id: number; name: string }>>([]);
+  const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState<boolean>(true);
 
   useEffect(() => {
-    getSubscriptions()
-      .then(data => setSubscriptions(
-        (data.suscripciones ?? []).map((s: any) => ({ id: s.id, name: s.name }))
+    setIsLoadingSubscriptions(true);
+    // Avoid hanging forever if the request never resolves (server down/CORS).
+    const timeoutMs = 5000;
+    const timeoutPromise = new Promise<any>(resolve => setTimeout(() => resolve({ suscripciones: [] }), timeoutMs));
+
+    Promise.race([getSubscriptions(), timeoutPromise])
+      .then((data: any) => setSubscriptions(
+        (data?.suscripciones ?? []).map((s: any) => ({ id: s.id, name: s.name }))
       ))
-      .catch(() => {});
+      .catch(() => setSubscriptions([]))
+      .finally(() => setIsLoadingSubscriptions(false));
   }, []);
 
   const updatePrefs = (changes: Partial<NotifPrefs>) => {
@@ -171,9 +235,11 @@ export function AccountSettings() {
 
             {!prefs.allSubsEnabled && (
               <div className="mt-3 space-y-2 pl-2">
-                {subscriptions.length === 0 && (
+                {isLoadingSubscriptions ? (
                   <p className="text-xs text-secondary">Cargando suscripciones…</p>
-                )}
+                ) : subscriptions.length === 0 ? (
+                  <p className="text-xs text-secondary">No hay suscripciones.</p>
+                ) : null}
                 {subscriptions.map(sub => (
                   <label key={sub.id} className="flex items-center gap-3 cursor-pointer group">
                     <input
@@ -213,6 +279,8 @@ export function AccountSettings() {
             <input
               type="password"
               aria-label="Contraseña Actual"
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border"
               style={inputStyle}
@@ -223,6 +291,8 @@ export function AccountSettings() {
             <input
               type="password"
               aria-label="Nueva Contraseña"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border"
               style={inputStyle}
@@ -233,20 +303,29 @@ export function AccountSettings() {
             <input
               type="password"
               aria-label="Confirmar Nueva Contraseña"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border"
               style={inputStyle}
             />
           </div>
-          <div className="pt-2">
+          <div className="pt-2 flex items-center gap-3">
             <button
               type="button"
+              onClick={handleUpdatePassword}
               aria-label="Actualizar contraseña"
               className="px-6 py-2.5 rounded-lg transition-all hover:opacity-90"
               style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
             >
               Actualizar Contraseña
             </button>
+            {passwordMsg && (
+              <span className="flex items-center gap-1 text-sm" style={{ color: passwordMsg.ok ? '#52b788' : '#E61445' }}>
+                {passwordMsg.ok ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                {passwordMsg.text}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -259,26 +338,13 @@ export function AccountSettings() {
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="text-sm mb-2 block" style={{ color: 'var(--text-secondary)' }}>Idioma</label>
-            <select
-              defaultValue="es"
-              aria-label="Idioma"
-              className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border"
-              style={inputStyle}
-            >
-              <option value="es">Español</option>
-              <option value="en">English</option>
-              <option value="pt">Português</option>
-            </select>
-          </div>
-          <div>
             <label className="text-sm mb-2 block" style={{ color: 'var(--text-secondary)' }}>Moneda Predeterminada</label>
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
               aria-label="Moneda predeterminada"
-              className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border"
-              style={inputStyle}
+              className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border bg-surface"
+              style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
             >
               <option value="USD">USD - Dólar Estadounidense</option>
               <option value="EUR">EUR - Euro</option>
@@ -322,6 +388,7 @@ export function AccountSettings() {
         </p>
         <button
           type="button"
+          onClick={handleDeleteAccount}
           aria-label="Eliminar cuenta permanentemente"
           className="px-6 py-2.5 rounded-lg border transition-all hover:opacity-90"
           style={{

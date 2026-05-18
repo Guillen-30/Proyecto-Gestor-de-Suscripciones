@@ -87,20 +87,11 @@ export function Login() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-          </div>
-
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-secondary cursor-pointer">
-              <input type="checkbox" className="rounded" />
-              Recordarme
-            </label>
-            <button type="button" style={{ color: colors.primaryAction }} className="hover:opacity-80 transition-opacity">
-              ¿Olvidaste tu contraseña?
-            </button>
           </div>
 
           {error && (
@@ -122,7 +113,7 @@ export function Login() {
           <span className="text-secondary">¿No tienes cuenta? </span>
           <button
             onClick={() => navigate("/register")}
-            style={{ color: colors.primaryAction }}
+            style={{ color: colors.textPrimary }}
             className="hover:opacity-80 transition-opacity"
           >
             Regístrate aquí

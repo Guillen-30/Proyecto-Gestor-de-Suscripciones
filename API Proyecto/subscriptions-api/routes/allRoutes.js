@@ -50,6 +50,7 @@ router.get('/payment-methods/types', payMethCtrl.getPaymentTypes); // Dropdown
 router.get('/payment-methods', payMethCtrl.getPaymentMethods);     // Lista
 router.post('/payment-methods', payMethCtrl.createPaymentMethod);
 router.put('/payment-methods/:id', payMethCtrl.updatePaymentMethod);
+router.put('/payment-methods/:id/default', payMethCtrl.setDefaultPaymentMethod);
 router.delete('/payment-methods/:id', payMethCtrl.deletePaymentMethod);
 
 // ==========================================

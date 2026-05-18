@@ -69,8 +69,10 @@ GO
 IF OBJECT_ID('MetodoDePago', 'U') IS NULL
 CREATE TABLE MetodoDePago (
     ID      INT          IDENTITY(1,1) PRIMARY KEY,
+    UsuarioID INT         NULL,
     TipoID  INT          NOT NULL,
     Alias   NVARCHAR(40) NOT NULL,
+    Detalles NVARCHAR(500) NULL,
     CONSTRAINT FK_MetodoDePago_Tipo FOREIGN KEY (TipoID) REFERENCES Tipo(ID)
 );
 GO
@@ -107,6 +109,7 @@ CREATE TABLE Suscripcion (
     FechaRenovacion     DATE           NOT NULL,
     ImagenURL           NVARCHAR(255)  NULL,    -- ruta/URL de imagen subida
     ImagenAlt           NVARCHAR(150)  NULL,    -- texto alternativo (accesibilidad)
+    Notas               NVARCHAR(500)  NULL,
     CONSTRAINT FK_Suscripcion_Usuario          FOREIGN KEY (UsuarioID)          REFERENCES Usuario(ID),
     CONSTRAINT FK_Suscripcion_MetodoDePago     FOREIGN KEY (MetodoDePagoID)     REFERENCES MetodoDePago(ID),
     CONSTRAINT FK_Suscripcion_cicloFacturacion FOREIGN KEY (cicloFacturacionID) REFERENCES cicloFacturacion(ID),
@@ -209,8 +212,8 @@ INSERT INTO Correo (UsuarioID, Descripcion)
 VALUES (1, 'joche@example.com');
 GO
 
-INSERT INTO MetodoDePago (TipoID, Alias)
-VALUES (1, 'Visa terminada en 4242');
+INSERT INTO MetodoDePago (UsuarioID, TipoID, Alias, Detalles)
+VALUES (1, 1, 'Visa terminada en 4242', 'Tarjeta de crédito terminada en 4242');
 GO
 
 UPDATE Usuario SET MetodoDePagoID = 1 WHERE ID = 1;
@@ -222,11 +225,11 @@ GO
 
 INSERT INTO Suscripcion
     (UsuarioID, MetodoDePagoID, cicloFacturacionID, EstadoID, CategoriaID,
-     Descripcion, Costo, FechaRenovacion, ImagenURL, ImagenAlt)
+     Descripcion, Costo, FechaRenovacion, ImagenURL, ImagenAlt, Notas)
 VALUES
     (1, 1, 2, 1, 1,
      'Plan estándar Netflix', 9.99, '2026-06-01',
-     '/uploads/netflix.png', 'Logo de Netflix sobre fondo rojo');
+     '/uploads/netflix.png', 'Logo de Netflix sobre fondo rojo', NULL);
 GO
 
 INSERT INTO Credencial (UsuarioID, SuscripcionID, Contrasena, NombreUsuario, URL, Descripcion)

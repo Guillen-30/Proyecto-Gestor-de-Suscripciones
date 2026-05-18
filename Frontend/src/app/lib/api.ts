@@ -45,6 +45,13 @@ export async function updateUser(id: number, data: { nombre?: string; contrasena
   );
 }
 
+export async function deleteUser(id: number) {
+  return request<{ message: string }>(
+    `${USER_API}/api/users/${id}`,
+    { method: 'DELETE', headers: authHeaders() }
+  );
+}
+
 // ==========================================
 // DASHBOARD
 // ==========================================
@@ -170,6 +177,13 @@ export async function deletePaymentMethod(id: number) {
   return request<{ message: string }>(
     `${SUBS_API}/api/payment-methods/${id}`,
     { method: 'DELETE', headers: authHeaders() }
+  );
+}
+
+export async function setDefaultPaymentMethod(id: number) {
+  return request<{ message: string }>(
+    `${SUBS_API}/api/payment-methods/${id}/default`,
+    { method: 'PUT', headers: authHeaders() }
   );
 }
 

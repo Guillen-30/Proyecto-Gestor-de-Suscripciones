@@ -19,7 +19,8 @@ const getPaymentFormData = async (req, res) => {
                     WHERE s.UsuarioID = @UsuarioID AND e.Descripcion <> 'Cancelada'
                 `),
             pool.request()
-                .query('SELECT ID, Alias FROM MetodoDePago ORDER BY Alias ASC')
+                .input('UsuarioID', sql.Int, usuarioId)
+                .query('SELECT ID, Alias FROM MetodoDePago ORDER BY Alias ASC WHERE UsuarioID = @UsuarioID OR UsuarioID IS NULL')
         ]);
         
         res.json({ suscripciones: subscriptions.recordset, metodosPago: paymentMethods.recordset });
