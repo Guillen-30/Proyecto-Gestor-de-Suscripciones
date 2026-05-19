@@ -117,7 +117,7 @@ export function PaymentMethodForm({ isOpen, onClose, onSave, editData, typeOptio
             <button
               type="submit"
               className="flex-1 px-6 py-3 rounded-lg transition-all hover:opacity-90"
-              style={{ backgroundColor: colors.primaryAction, color: colors.textPrimary }}
+              style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
             >
               {editData ? "Guardar Cambios" : "Agregar Método"}
             </button>

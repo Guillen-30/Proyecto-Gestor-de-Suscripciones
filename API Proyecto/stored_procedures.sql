@@ -75,11 +75,9 @@ BEGIN
         DELETE FROM Suscripcion     WHERE UsuarioID = @ID;
         DELETE FROM Categoria       WHERE UsuarioID = @ID;
 
-        DELETE FROM MetodoDePago
-            WHERE ID NOT IN (
-                SELECT DISTINCT MetodoDePagoID
-                FROM Usuario WHERE MetodoDePagoID IS NOT NULL
-            );
+        -- Desasociar método de pago predeterminado antes de eliminarlos
+        UPDATE Usuario SET MetodoDePagoID = NULL WHERE ID = @ID;
+        DELETE FROM MetodoDePago WHERE UsuarioID = @ID;
 
         DELETE FROM Correo  WHERE UsuarioID = @ID;
         DELETE FROM Usuario WHERE ID = @ID;
@@ -173,7 +171,7 @@ GO
 
 CREATE OR ALTER PROCEDURE spCrearSuscripcion
     @UsuarioID          INT,
-    @MetodoDePagoID     INT,
+    @MetodoDePagoID     INT           = NULL,
     @cicloFacturacionID INT,
     @EstadoID           INT,
     @CategoriaID        INT           = NULL,
@@ -189,7 +187,7 @@ BEGIN
     BEGIN TRY
         IF NOT EXISTS (SELECT 1 FROM Usuario          WHERE ID = @UsuarioID)
             RAISERROR('Usuario no encontrado.',              16, 1);
-        IF NOT EXISTS (SELECT 1 FROM MetodoDePago     WHERE ID = @MetodoDePagoID)
+        IF @MetodoDePagoID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM MetodoDePago WHERE ID = @MetodoDePagoID)
             RAISERROR('Método de pago no encontrado.',       16, 1);
         IF NOT EXISTS (SELECT 1 FROM cicloFacturacion WHERE ID = @cicloFacturacionID)
             RAISERROR('Ciclo de facturación no encontrado.', 16, 1);
@@ -367,6 +365,7 @@ GO
 -- ============================================================
 
 CREATE OR ALTER PROCEDURE spCrearMetodoPago
+    @UsuarioID INT,
     @TipoID   INT,
     @Alias    NVARCHAR(40),
     @Detalles NVARCHAR(500) = NULL
@@ -376,30 +375,38 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM Tipo WHERE ID = @TipoID)
         RAISERROR('Tipo de método de pago no encontrado.', 16, 1);
 
-    INSERT INTO MetodoDePago (TipoID, Alias, Detalles)
-    VALUES (@TipoID, @Alias, @Detalles);
+    INSERT INTO MetodoDePago (UsuarioID, TipoID, Alias, Detalles)
+    VALUES (@UsuarioID, @TipoID, @Alias, @Detalles);
 
     SELECT SCOPE_IDENTITY() AS ID;
 END;
 GO
 
 CREATE OR ALTER PROCEDURE spEliminarMetodoPago
-    @ID INT
+    @ID        INT,
+    @UsuarioID INT
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF NOT EXISTS (SELECT 1 FROM MetodoDePago WHERE ID = @ID)
-        RAISERROR('Método de pago no encontrado.', 16, 1);
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM MetodoDePago WHERE ID = @ID AND UsuarioID = @UsuarioID)
+        BEGIN
+            RAISERROR('Método de pago no encontrado.', 16, 1);
+            RETURN;
+        END
 
-    IF EXISTS (
-        SELECT 1 FROM Suscripcion s
-        INNER JOIN Estado e ON e.ID = s.EstadoID
-        WHERE s.MetodoDePagoID = @ID
-          AND e.Descripcion IN ('Activa', 'Por vencer')
-    )
-        RAISERROR('No se puede eliminar: el método de pago tiene suscripciones activas.', 16, 1);
+        -- Desasociar suscripciones antes de eliminar el método de pago
+        UPDATE Suscripcion SET MetodoDePagoID = NULL WHERE MetodoDePagoID = @ID;
 
-    DELETE FROM MetodoDePago WHERE ID = @ID;
+        DELETE FROM MetodoDePago WHERE ID = @ID AND UsuarioID = @UsuarioID;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
 END;
 GO
 

@@ -12,6 +12,8 @@ interface EditPaymentData {
   method: string;
   date: string;
   amount: number;
+  subscriptionId?: number;
+  methodId?: number;
 }
 
 interface PaymentHistoryFormProps {
@@ -34,7 +36,6 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
     subscriptionId: "",
     paymentMethodId: "",
     amount: "",
-    notes: "",
   });
 
   const [formData, setFormData] = useState(emptyForm());
@@ -43,10 +44,9 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
     if (editData) {
       setFormData({
         date: String(editData.date).split('T')[0],
-        subscriptionId: "",
-        paymentMethodId: "",
+        subscriptionId: editData.subscriptionId?.toString() ?? "",
+        paymentMethodId: editData.methodId?.toString() ?? "",
         amount: (editData.amount * rate).toFixed(2),
-        notes: "",
       });
     } else {
       setFormData(emptyForm());
@@ -55,23 +55,18 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editData) {
-      onSave({ date: formData.date, amount: parseFloat(formData.amount) });
-    } else {
-      const subscription = subscriptions.find(s => s.id.toString() === formData.subscriptionId);
-      const paymentMethod = paymentMethods.find(p => p.id.toString() === formData.paymentMethodId);
-      onSave({
-        id: Date.now(),
-        subscriptionId: parseInt(formData.subscriptionId),
-        paymentMethodId: parseInt(formData.paymentMethodId),
-        date: formData.date,
-        service: subscription?.name || "",
-        category: subscription?.category || "",
-        paymentMethod: paymentMethod?.alias || "",
-        amount: parseFloat(formData.amount),
-        notes: formData.notes,
-      });
-    }
+    const subscription = subscriptions.find(s => s.id.toString() === formData.subscriptionId);
+    const paymentMethod = paymentMethods.find(p => p.id.toString() === formData.paymentMethodId);
+    onSave({
+      id: editData?.id ?? Date.now(),
+      subscriptionId: formData.subscriptionId ? parseInt(formData.subscriptionId) : null,
+      paymentMethodId: formData.paymentMethodId ? parseInt(formData.paymentMethodId) : null,
+      date: formData.date,
+      service: subscription?.name ?? editData?.service ?? "",
+      category: subscription?.category ?? "",
+      paymentMethod: paymentMethod?.alias ?? "",
+      amount: parseFloat(formData.amount),
+    });
     setFormData(emptyForm());
     onClose();
   };
@@ -99,28 +94,11 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
           >
-            <X className="w-5 h-5" style={{ color: "#FFFFFF" }} />
+            <X className="w-5 h-5" style={{ color: colors.primaryForeground }} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {editData && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-secondary mb-2 block">Suscripción</label>
-                <div className="px-4 py-3 rounded-lg text-sm" style={{ backgroundColor: colors.bgBase, color: colors.textPrimary, opacity: 0.7 }}>
-                  {editData.service}
-                </div>
-              </div>
-              <div>
-                <label className="text-sm text-secondary mb-2 block">Método de Pago</label>
-                <div className="px-4 py-3 rounded-lg text-sm" style={{ backgroundColor: colors.bgBase, color: colors.textPrimary, opacity: 0.7 }}>
-                  {editData.method}
-                </div>
-              </div>
-            </div>
-          )}
-
           <div>
             <label className="text-sm text-secondary mb-2 block">Fecha de Pago *</label>
             <input
@@ -134,43 +112,38 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
             />
           </div>
 
-          {!editData && (
-            <>
-              <div>
-                <label className="text-sm text-secondary mb-2 block">Suscripción *</label>
-                <select
-                  aria-label="Suscripción"
-                  value={formData.subscriptionId}
-                  onChange={(e) => setFormData({ ...formData, subscriptionId: e.target.value })}
-                  required
-                  className="w-full px-4 py-3 rounded-lg outline-none"
-                  style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
-                >
-                  <option value="">Seleccionar suscripción</option>
-                  {subscriptions.map((sub) => (
-                    <option key={sub.id} value={sub.id}>{sub.name}</option>
-                  ))}
-                </select>
-              </div>
+          <div>
+            <label className="text-sm text-secondary mb-2 block">Suscripción *</label>
+            <select
+              aria-label="Suscripción"
+              value={formData.subscriptionId}
+              onChange={(e) => setFormData({ ...formData, subscriptionId: e.target.value })}
+              required
+              className="w-full px-4 py-3 rounded-lg outline-none"
+              style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
+            >
+              <option value="">Seleccionar suscripción</option>
+              {subscriptions.map((sub) => (
+                <option key={sub.id} value={sub.id}>{sub.name}</option>
+              ))}
+            </select>
+          </div>
 
-              <div>
-                <label className="text-sm text-secondary mb-2 block">Método de Pago *</label>
-                <select
-                  aria-label="Método de pago"
-                  value={formData.paymentMethodId}
-                  onChange={(e) => setFormData({ ...formData, paymentMethodId: e.target.value })}
-                  required
-                  className="w-full px-4 py-3 rounded-lg outline-none"
-                  style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
-                >
-                  <option value="">Seleccionar método</option>
-                  {paymentMethods.map((method) => (
-                    <option key={method.id} value={method.id}>{method.alias}</option>
-                  ))}
-                </select>
-              </div>
-            </>
-          )}
+          <div>
+            <label className="text-sm text-secondary mb-2 block">Método de Pago</label>
+            <select
+              aria-label="Método de pago"
+              value={formData.paymentMethodId}
+              onChange={(e) => setFormData({ ...formData, paymentMethodId: e.target.value })}
+              className="w-full px-4 py-3 rounded-lg outline-none"
+              style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
+            >
+              <option value="">Ninguno</option>
+              {paymentMethods.map((method) => (
+                <option key={method.id} value={method.id}>{method.alias}</option>
+              ))}
+            </select>
+          </div>
 
           <div>
             <label className="text-sm text-secondary mb-2 block">Monto ({sym}) *</label>
@@ -187,20 +160,6 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
             />
           </div>
 
-          {!editData && (
-            <div>
-              <label className="text-sm text-secondary mb-2 block">Notas (Opcional)</label>
-              <textarea
-                aria-label="Notas"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Información adicional sobre este pago..."
-                rows={3}
-                className="w-full px-4 py-3 rounded-lg outline-none resize-none"
-                style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
-              />
-            </div>
-          )}
 
           <div className="flex gap-3 pt-4">
             <button
@@ -214,7 +173,7 @@ export function PaymentHistoryForm({ isOpen, onClose, onSave, subscriptions, pay
             <button
               type="submit"
               className="flex-1 px-6 py-3 rounded-lg transition-all hover:opacity-90"
-              style={{ backgroundColor: colors.primaryAction, color: "#FFFFFF" }}
+              style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
             >
               {editData ? "Guardar Cambios" : "Registrar Pago"}
             </button>

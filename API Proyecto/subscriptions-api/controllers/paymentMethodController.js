@@ -1,9 +1,11 @@
 const { connectDB, sql } = require('../config/db');
 
 const getPaymentMethods = async (req, res) => {
+    const usuarioId = req.user.id;
     try {
         const pool = await connectDB();
         const result = await pool.request()
+            .input('UsuarioID', sql.Int, usuarioId)
             .query(`
                 SELECT
                     mp.ID AS id,
@@ -13,6 +15,7 @@ const getPaymentMethods = async (req, res) => {
                     CAST(0 AS BIT) AS isDefault
                 FROM MetodoDePago mp
                 INNER JOIN Tipo t ON mp.TipoID = t.ID
+                WHERE mp.UsuarioID = @UsuarioID
                 ORDER BY mp.Alias ASC
             `);
         res.json({ metodosPago: result.recordset });
@@ -24,9 +27,11 @@ const getPaymentMethods = async (req, res) => {
 
 const createPaymentMethod = async (req, res) => {
     const { tipoId, alias, detalles } = req.body;
+    const usuarioId = req.user.id;
     try {
         const pool = await connectDB();
         const result = await pool.request()
+            .input('UsuarioID', sql.Int, usuarioId)
             .input('TipoID', sql.Int, tipoId)
             .input('Alias', sql.NVarChar, alias)
             .input('Detalles', sql.NVarChar, detalles || null)
@@ -40,10 +45,12 @@ const createPaymentMethod = async (req, res) => {
 
 const deletePaymentMethod = async (req, res) => {
     const { id } = req.params;
+    const usuarioId = req.user.id;
     try {
         const pool = await connectDB();
         await pool.request()
             .input('ID', sql.Int, id)
+            .input('UsuarioID', sql.Int, usuarioId)
             .execute('dbo.spEliminarMetodoPago');
         res.json({ message: 'Método de pago eliminado exitosamente' });
     } catch (error) {
@@ -58,17 +65,19 @@ const deletePaymentMethod = async (req, res) => {
 const updatePaymentMethod = async (req, res) => {
     const { id } = req.params;
     const { tipoId, alias, detalles } = req.body;
+    const usuarioId = req.user.id;
     try {
         const pool = await connectDB();
         const result = await pool.request()
             .input('ID', sql.Int, id)
+            .input('UsuarioID', sql.Int, usuarioId)
             .input('TipoID', sql.Int, tipoId)
             .input('Alias', sql.NVarChar, alias)
             .input('Detalles', sql.NVarChar, detalles ?? null)
             .query(`
                 UPDATE MetodoDePago
                 SET TipoID = @TipoID, Alias = @Alias, Detalles = @Detalles
-                WHERE ID = @ID
+                WHERE ID = @ID AND UsuarioID = @UsuarioID
             `);
         if (result.rowsAffected[0] === 0) {
             return res.status(404).json({ error: 'Método de pago no encontrado.' });

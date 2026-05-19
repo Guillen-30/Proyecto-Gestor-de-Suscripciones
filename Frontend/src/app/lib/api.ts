@@ -45,6 +45,13 @@ export async function updateUser(id: number, data: { nombre?: string; contrasena
   );
 }
 
+export async function deleteUser(id: number) {
+  return request<{ message: string }>(
+    `${USER_API}/api/users/${id}`,
+    { method: 'DELETE', headers: authHeaders() }
+  );
+}
+
 // ==========================================
 // DASHBOARD
 // ==========================================
@@ -230,14 +237,14 @@ export async function getPaymentFormData() {
   );
 }
 
-export async function registerPayment(data: { suscripcionId: number; metodoDePagoId: number; monto: number; fecha: string }) {
+export async function registerPayment(data: { suscripcionId: number; metodoDePagoId: number | null; monto: number; fecha: string }) {
   return request<{ message: string; nuevaFechaRenovacion: string }>(
     `${SUBS_API}/api/payments`,
     { method: 'POST', headers: authHeaders(), body: JSON.stringify(data) }
   );
 }
 
-export async function updatePayment(id: number, data: { monto: number; fecha: string }) {
+export async function updatePayment(id: number, data: { monto: number; fecha: string; suscripcionId?: number | null; metodoDePagoId?: number | null }) {
   return request<{ message: string }>(
     `${SUBS_API}/api/payments/${id}`,
     { method: 'PUT', headers: authHeaders(), body: JSON.stringify(data) }

@@ -102,9 +102,9 @@ export function PaymentMethods() {
               <div className="flex items-center gap-3 flex-1">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.primaryAction }}>
                   {(method.type || '').includes("Tarjeta") ? (
-                    <CreditCard className="w-6 h-6" style={{ color: "#FFFFFF" }} />
+                    <CreditCard className="w-6 h-6" style={{ color: colors.primaryForeground }} />
                   ) : (
-                    <Wallet className="w-6 h-6" style={{ color: "#FFFFFF" }} />
+                    <Wallet className="w-6 h-6" style={{ color: colors.primaryForeground }} />
                   )}
                 </div>
                 <div className="min-w-0">

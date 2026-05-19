@@ -87,10 +87,9 @@ export function Subscriptions() {
 
       if (!cicloId) { alert(`Ciclo de facturación no reconocido: "${formData.billingCycle}"`); return; }
       if (!estadoId) { alert(`Estado no reconocido: "${formData.status}"`); return; }
-      if (!metodoPagoId) { alert('Selecciona un método de pago válido.'); return; }
 
       const body = {
-        metodoDePagoId: metodoPagoId,
+        metodoDePagoId: metodoPagoId || null,
         cicloFacturacionId: cicloId,
         estadoId,
         categoriaId,

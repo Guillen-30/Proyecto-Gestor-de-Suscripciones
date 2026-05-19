@@ -7,7 +7,7 @@
   /* Custom dark mode colors for subscription manager */
   --bg-base: #282727;
   --bg-surface: #3a3938;
-  --color-primary-action: #454c3d;
+  --color-primary-action: #128c7e;
   --text-primary: #e8e8e8;
   --text-secondary: #b4b4b4;
   --text-muted: #a8a8a8;
@@ -37,7 +37,7 @@
   --font-weight-normal: 400;
   --ring: var(--color-primary-action);
   --chart-1: #646cff;
-  --chart-2: #52b788;
+  --chart-2: #12e3a8;
   --chart-3: #ffd166;
   --chart-4: #E61445;
   --chart-5: #118ab2;
@@ -58,7 +58,7 @@
   /* Custom light mode colors - complementary palette */
   --bg-base: #f5f5f4;
   --bg-surface: #ffffff;
-  --color-primary-action: #5C6D50;
+  --color-primary-action: #075e54;
   --text-primary: #1a1a1a;
   --text-secondary: #3a3a3a;
   --text-muted: #5a5a5a;

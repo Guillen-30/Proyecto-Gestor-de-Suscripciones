@@ -68,10 +68,13 @@ GO
 
 IF OBJECT_ID('MetodoDePago', 'U') IS NULL
 CREATE TABLE MetodoDePago (
-    ID      INT          IDENTITY(1,1) PRIMARY KEY,
-    TipoID  INT          NOT NULL,
-    Alias   NVARCHAR(40) NOT NULL,
-    CONSTRAINT FK_MetodoDePago_Tipo FOREIGN KEY (TipoID) REFERENCES Tipo(ID)
+    ID        INT           IDENTITY(1,1) PRIMARY KEY,
+    UsuarioID INT           NOT NULL,
+    TipoID    INT           NOT NULL,
+    Alias     NVARCHAR(40)  NOT NULL,
+    Detalles  NVARCHAR(500) NULL,
+    CONSTRAINT FK_MetodoDePago_Tipo    FOREIGN KEY (TipoID)    REFERENCES Tipo(ID),
+    CONSTRAINT FK_MetodoDePago_Usuario FOREIGN KEY (UsuarioID) REFERENCES Usuario(ID)
 );
 GO
 
@@ -98,7 +101,7 @@ IF OBJECT_ID('Suscripcion', 'U') IS NULL
 CREATE TABLE Suscripcion (
     ID                  INT            IDENTITY(1,1) PRIMARY KEY,
     UsuarioID           INT            NOT NULL,
-    MetodoDePagoID      INT            NOT NULL,
+    MetodoDePagoID      INT            NULL,
     cicloFacturacionID  INT            NOT NULL,
     EstadoID            INT            NOT NULL,
     CategoriaID         INT            NULL,
@@ -175,6 +178,7 @@ CREATE INDEX IX_Credencial_UsuarioID         ON Credencial(UsuarioID);
 CREATE INDEX IX_HistorialDePago_UsuarioID    ON HistorialDePago(UsuarioID);
 CREATE INDEX IX_Correo_UsuarioID             ON Correo(UsuarioID);
 CREATE INDEX IX_Categoria_UsuarioID          ON Categoria(UsuarioID);
+CREATE INDEX IX_MetodoDePago_UsuarioID       ON MetodoDePago(UsuarioID);
 GO
 
 -- ============================================================
@@ -209,8 +213,8 @@ INSERT INTO Correo (UsuarioID, Descripcion)
 VALUES (1, 'joche@example.com');
 GO
 
-INSERT INTO MetodoDePago (TipoID, Alias)
-VALUES (1, 'Visa terminada en 4242');
+INSERT INTO MetodoDePago (UsuarioID, TipoID, Alias)
+VALUES (1, 1, 'Visa terminada en 4242');
 GO
 
 UPDATE Usuario SET MetodoDePagoID = 1 WHERE ID = 1;

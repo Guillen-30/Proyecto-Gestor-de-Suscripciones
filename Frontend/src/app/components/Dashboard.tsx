@@ -87,7 +87,7 @@ export function Dashboard() {
               <h3 className="text-3xl text-foreground">{sym}{toDisplay(summary?.gastoMensualTotal ?? 0)}</h3>
             </div>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
-              <DollarSign className="w-6 h-6" style={{ color: '#ffffff' }} />
+              <DollarSign className="w-6 h-6" style={{ color: colors.primaryForeground }} />
             </div>
           </div>
         </div>
@@ -99,7 +99,7 @@ export function Dashboard() {
               <h3 className="text-3xl text-foreground">{summary?.totalSuscripcionesActivas ?? 0}</h3>
             </div>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
-              <TrendingUp className="w-6 h-6" style={{ color: '#ffffff' }} />
+              <TrendingUp className="w-6 h-6" style={{ color: colors.primaryForeground }} />
             </div>
           </div>
         </div>
@@ -116,7 +116,7 @@ export function Dashboard() {
               )}
             </div>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
-              <Calendar className="w-6 h-6" style={{ color: '#ffffff' }} />
+              <Calendar className="w-6 h-6" style={{ color: colors.primaryForeground }} />
             </div>
           </div>
         </div>
@@ -128,7 +128,7 @@ export function Dashboard() {
               <h3 className="text-3xl text-foreground">{alertPayments.length}</h3>
             </div>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
-              <AlertCircle className="w-6 h-6" style={{ color: '#ffffff' }} />
+              <AlertCircle className="w-6 h-6" style={{ color: colors.primaryForeground }} />
             </div>
           </div>
         </div>
@@ -174,7 +174,7 @@ export function Dashboard() {
                       <h4 className="text-foreground">{payment.name}</h4>
                       <span
                         className="px-2 py-1 rounded text-xs text-right max-w-[60%]"
-                        style={{ backgroundColor: getDaysUrgent(payment.billingDate) ? colors.destructive : colors.primaryAction, color: '#FFFFFF' }}
+                        style={{ backgroundColor: getDaysUrgent(payment.billingDate) ? colors.destructive : colors.primaryAction, color: getDaysUrgent(payment.billingDate) ? '#ffffff' : colors.primaryForeground }}
                       >
                         {getDaysLabel(payment.billingDate)}
                       </span>
@@ -212,7 +212,7 @@ export function Dashboard() {
                       <span className="text-white text-xl">{sub.name?.charAt(0)}</span>
                     )}
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs" style={{ backgroundColor: colors.primaryAction, color: '#e8e8e8' }}>
+                  <span className="px-3 py-1 rounded-full text-xs" style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}>
                     {sub.status}
                   </span>
                 </div>

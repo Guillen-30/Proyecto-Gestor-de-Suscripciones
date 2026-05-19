@@ -223,7 +223,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                     style={{
                       backgroundColor:
                         notification.type === 'warning' ? '#ffd166' :
-                        notification.type === 'success' ? '#52b788' :
+                        notification.type === 'success' ? colors.success :
                         colors.primaryAction,
                     }}
                   >
