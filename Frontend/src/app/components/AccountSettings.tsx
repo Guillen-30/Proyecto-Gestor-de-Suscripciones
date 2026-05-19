@@ -5,6 +5,9 @@ import { useState, useEffect } from "react";
 import { getSubscriptions, updateUser, deleteUser, login } from "../lib/api";
 import { useNavigate } from "react-router";
 import { NOTIF_PREFS_KEY } from "./NotificationsModal";
+import { useThemeColors } from "../hooks/useThemeColors";
+
+
 
 interface NotifPrefs {
   upcomingEnabled: boolean;
@@ -48,6 +51,10 @@ export function AccountSettings() {
 
   const [nombre, setNombre] = useState<string>(storedUser.nombre || '');
   const [profileMsg, setProfileMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [currentPassword, setCurrentPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [passwordMsg, setPasswordMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   const handleSaveProfile = async () => {
     try {
@@ -134,13 +141,20 @@ export function AccountSettings() {
   // ── Notification prefs ────────────────────────────────────────────────
   const [prefs, setPrefs] = useState<NotifPrefs>(getPrefs());
   const [subscriptions, setSubscriptions] = useState<Array<{ id: number; name: string }>>([]);
+  const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState<boolean>(true);
 
   useEffect(() => {
-    getSubscriptions()
-      .then(data => setSubscriptions(
-        (data.suscripciones ?? []).map((s: any) => ({ id: s.id, name: s.name }))
+    setIsLoadingSubscriptions(true);
+    // Avoid hanging forever if the request never resolves (server down/CORS).
+    const timeoutMs = 5000;
+    const timeoutPromise = new Promise<any>(resolve => setTimeout(() => resolve({ suscripciones: [] }), timeoutMs));
+
+    Promise.race([getSubscriptions(), timeoutPromise])
+      .then((data: any) => setSubscriptions(
+        (data?.suscripciones ?? []).map((s: any) => ({ id: s.id, name: s.name }))
       ))
-      .catch(() => {});
+      .catch(() => setSubscriptions([]))
+      .finally(() => setIsLoadingSubscriptions(false));
   }, []);
 
   const updatePrefs = (changes: Partial<NotifPrefs>) => {
@@ -246,9 +260,11 @@ export function AccountSettings() {
 
             {!prefs.allSubsEnabled && (
               <div className="mt-3 space-y-2 pl-2">
-                {subscriptions.length === 0 && (
+                {isLoadingSubscriptions ? (
                   <p className="text-xs text-secondary">Cargando suscripciones…</p>
-                )}
+                ) : subscriptions.length === 0 ? (
+                  <p className="text-xs text-secondary">No hay suscripciones.</p>
+                ) : null}
                 {subscriptions.map(sub => (
                   <label key={sub.id} className="flex items-center gap-3 cursor-pointer group">
                     <input
@@ -288,6 +304,8 @@ export function AccountSettings() {
             <input
               type="password"
               aria-label="Contraseña Actual"
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
               placeholder="••••••••"
               value={currentPass}
               onChange={e => setCurrentPass(e.target.value)}
@@ -300,6 +318,8 @@ export function AccountSettings() {
             <input
               type="password"
               aria-label="Nueva Contraseña"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
               placeholder="••••••••"
               value={newPass}
               onChange={e => setNewPass(e.target.value)}
@@ -312,6 +332,8 @@ export function AccountSettings() {
             <input
               type="password"
               aria-label="Confirmar Nueva Contraseña"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               value={confirmPass}
               onChange={e => setConfirmPass(e.target.value)}

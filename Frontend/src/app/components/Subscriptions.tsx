@@ -39,6 +39,17 @@ interface Catalog {
 const truncateNotes = (notes: string, maxLength = 64) =>
   notes.length <= maxLength ? notes : `${notes.slice(0, maxLength - 1)}…`;
 
+const formatDateNoTimezoneShift = (value: string) => {
+  const isoDate = String(value || '').split('T')[0];
+  const parts = isoDate.split('-');
+  if (parts.length === 3) {
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString('es-ES');
+};
+
 export function Subscriptions() {
   const colors = useThemeColors();
   const { currency: preferredCurrency } = useTheme();
@@ -63,7 +74,7 @@ export function Subscriptions() {
         ...s,
         category: s.categoryName || '',
         currency: 'USD',
-        notes: '',
+        notes: s.notes || '',
       })));
     } catch (err) {
       console.error("Error cargando suscripciones:", err);
@@ -98,6 +109,7 @@ export function Subscriptions() {
         fechaRenovacion: formData.billingDate || formData.nextBillingDate,
         imageUrl: formData.imageUrl || null,
         imageAlt: formData.imageAlt || null,
+        notas: formData.notes,
       };
 
       if (editingSubscription) {
@@ -249,7 +261,7 @@ export function Subscriptions() {
                   </td>
                   <td className="px-6 py-4 text-secondary">{sub.billingCycle}</td>
                   <td className="px-6 py-4 text-secondary">
-                    {new Date(sub.billingDate).toLocaleDateString('es-ES')}
+                    {formatDateNoTimezoneShift(sub.billingDate)}
                   </td>
                   <td className="px-6 py-4 text-secondary">{sub.paymentMethod}</td>
                   <td className="px-6 py-4">

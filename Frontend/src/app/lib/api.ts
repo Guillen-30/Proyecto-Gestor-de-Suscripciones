@@ -180,6 +180,13 @@ export async function deletePaymentMethod(id: number) {
   );
 }
 
+export async function setDefaultPaymentMethod(id: number) {
+  return request<{ message: string }>(
+    `${SUBS_API}/api/payment-methods/${id}/default`,
+    { method: 'PUT', headers: authHeaders() }
+  );
+}
+
 // ==========================================
 // CREDENTIALS
 // ==========================================

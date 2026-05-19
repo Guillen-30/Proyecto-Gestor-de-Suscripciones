@@ -87,6 +87,7 @@ export function Login() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -112,7 +113,7 @@ export function Login() {
           <span className="text-secondary">¿No tienes cuenta? </span>
           <button
             onClick={() => navigate("/register")}
-            style={{ color: colors.primaryAction }}
+            style={{ color: colors.textPrimary }}
             className="hover:opacity-80 transition-opacity"
           >
             Regístrate aquí

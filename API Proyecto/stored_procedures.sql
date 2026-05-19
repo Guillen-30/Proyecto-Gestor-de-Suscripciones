@@ -179,7 +179,8 @@ CREATE OR ALTER PROCEDURE spCrearSuscripcion
     @Costo              DECIMAL(10,2),
     @FechaRenovacion    DATE,
     @ImagenURL          NVARCHAR(255) = NULL,
-    @ImagenAlt          NVARCHAR(150) = NULL
+    @ImagenAlt          NVARCHAR(150) = NULL,
+    @Notas              NVARCHAR(500) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -191,8 +192,8 @@ BEGIN
             RAISERROR('Método de pago no encontrado.',       16, 1);
         IF NOT EXISTS (SELECT 1 FROM cicloFacturacion WHERE ID = @cicloFacturacionID)
             RAISERROR('Ciclo de facturación no encontrado.', 16, 1);
-        IF NOT EXISTS (SELECT 1 FROM Estado           WHERE ID = @EstadoID)
-            RAISERROR('Estado no encontrado.',               16, 1);
+        IF NOT EXISTS (SELECT 1 FROM Estado WHERE ID = @EstadoID)
+            RAISERROR('Estado no encontrado.', 16, 1);
 
         IF @CategoriaID IS NOT NULL AND
            NOT EXISTS (SELECT 1 FROM Categoria WHERE ID = @CategoriaID AND UsuarioID = @UsuarioID)
@@ -200,10 +201,10 @@ BEGIN
 
         INSERT INTO Suscripcion
             (UsuarioID, MetodoDePagoID, cicloFacturacionID, EstadoID, CategoriaID,
-             Descripcion, Costo, FechaRenovacion, ImagenURL, ImagenAlt)
+             Descripcion, Costo, FechaRenovacion, ImagenURL, ImagenAlt, Notas)
         VALUES
             (@UsuarioID, @MetodoDePagoID, @cicloFacturacionID, @EstadoID, @CategoriaID,
-             @Descripcion, @Costo, @FechaRenovacion, @ImagenURL, @ImagenAlt);
+             @Descripcion, @Costo, @FechaRenovacion, @ImagenURL, @ImagenAlt, @Notas);
 
         SELECT SCOPE_IDENTITY() AS ID;
         COMMIT TRANSACTION;
@@ -226,7 +227,8 @@ CREATE OR ALTER PROCEDURE spActualizarSuscripcion
     @Costo              DECIMAL(10,2) = NULL,
     @FechaRenovacion    DATE          = NULL,
     @ImagenURL          NVARCHAR(255) = NULL,
-    @ImagenAlt          NVARCHAR(150) = NULL
+    @ImagenAlt          NVARCHAR(150) = NULL,
+    @Notas              NVARCHAR(500) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -252,7 +254,8 @@ BEGIN
             Costo              = ISNULL(@Costo,              Costo),
             FechaRenovacion    = ISNULL(@FechaRenovacion,    FechaRenovacion),
             ImagenURL          = ISNULL(@ImagenURL,          ImagenURL),
-            ImagenAlt          = ISNULL(@ImagenAlt,          ImagenAlt)
+            ImagenAlt          = ISNULL(@ImagenAlt,          ImagenAlt),
+            Notas              = ISNULL(@Notas,              Notas)
         WHERE ID = @ID;
 
         COMMIT TRANSACTION;
@@ -346,7 +349,6 @@ BEGIN
             RETURN;
         END
 
-        -- Desasociar suscripciones antes de eliminar la categoría
         UPDATE Suscripcion SET CategoriaID = NULL WHERE CategoriaID = @ID;
 
         DELETE FROM Categoria WHERE ID = @ID;
@@ -441,7 +443,6 @@ BEGIN
         INNER JOIN cicloFacturacion cf ON cf.ID = s.cicloFacturacionID
         WHERE s.ID = @SuscripcionID;
 
-        -- Avanzar desde la fecha del pago, no desde FechaRenovacion guardada
         DECLARE @NuevaFecha DATE;
         SET @NuevaFecha = CASE @CicloDesc
             WHEN 'Semanal'    THEN DATEADD(DAY,   7, @Fecha)
@@ -554,10 +555,10 @@ BEGIN
         c.Descripcion     AS Correo,
         DATEDIFF(DAY, s.FechaRenovacion, CAST(GETDATE() AS DATE)) AS DiasVencida
     FROM Suscripcion s
-    INNER JOIN Estado e    ON e.ID   = s.EstadoID
-    INNER JOIN Usuario u   ON u.ID   = s.UsuarioID
-    INNER JOIN Correo c    ON c.UsuarioID = u.ID
-    LEFT  JOIN Categoria cat ON cat.ID = s.CategoriaID
+    INNER JOIN Estado e       ON e.ID = s.EstadoID
+    INNER JOIN Usuario u      ON u.ID = s.UsuarioID
+    INNER JOIN Correo c       ON c.UsuarioID = u.ID
+    LEFT  JOIN Categoria cat  ON cat.ID = s.CategoriaID
     WHERE e.Descripcion = 'Por vencer'
     ORDER BY s.FechaRenovacion ASC;
 END;

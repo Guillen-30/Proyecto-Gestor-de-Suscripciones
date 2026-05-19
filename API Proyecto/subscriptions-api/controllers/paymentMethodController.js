@@ -3,6 +3,7 @@ const { connectDB, sql } = require('../config/db');
 const getPaymentMethods = async (req, res) => {
     const usuarioId = req.user.id;
     try {
+        const usuarioId = req.user?.id ?? null;
         const pool = await connectDB();
         const result = await pool.request()
             .input('UsuarioID', sql.Int, usuarioId)
@@ -12,7 +13,7 @@ const getPaymentMethods = async (req, res) => {
                     mp.Alias AS alias,
                     t.Descripcion AS type,
                     mp.Detalles AS details,
-                    CAST(0 AS BIT) AS isDefault
+                    CASE WHEN mp.ID = (SELECT MetodoDePagoID FROM Usuario WHERE ID = @UsuarioID) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS isDefault
                 FROM MetodoDePago mp
                 INNER JOIN Tipo t ON mp.TipoID = t.ID
                 WHERE mp.UsuarioID = @UsuarioID
@@ -29,12 +30,13 @@ const createPaymentMethod = async (req, res) => {
     const { tipoId, alias, detalles } = req.body;
     const usuarioId = req.user.id;
     try {
+        const usuarioId = req.user?.id ?? null;
         const pool = await connectDB();
         const result = await pool.request()
             .input('UsuarioID', sql.Int, usuarioId)
             .input('TipoID', sql.Int, tipoId)
-            .input('Alias', sql.NVarChar, alias)
-            .input('Detalles', sql.NVarChar, detalles || null)
+            .input('Alias', sql.NVarChar(40), alias)
+            .input('Detalles', sql.NVarChar(500), detalles || null)
             .execute('dbo.spCrearMetodoPago');
         res.status(201).json({ message: 'Método creado exitosamente', id: result.recordset[0].ID });
     } catch (error) {
@@ -47,7 +49,23 @@ const deletePaymentMethod = async (req, res) => {
     const { id } = req.params;
     const usuarioId = req.user.id;
     try {
+        const usuarioId = req.user?.id ?? null;
         const pool = await connectDB();
+
+        // Only owner can delete their payment methods
+        const ownerCheck = await pool.request()
+            .input('ID', sql.Int, id)
+            .query('SELECT UsuarioID FROM MetodoDePago WHERE ID = @ID');
+
+        if (!ownerCheck.recordset.length) {
+            return res.status(404).json({ error: 'Método de pago no encontrado.' });
+        }
+
+        const owner = ownerCheck.recordset[0]?.UsuarioID ?? null;
+        if (owner !== usuarioId) {
+            return res.status(403).json({ error: 'No tienes permiso para eliminar este método de pago' });
+        }
+
         await pool.request()
             .input('ID', sql.Int, id)
             .input('UsuarioID', sql.Int, usuarioId)
@@ -67,13 +85,25 @@ const updatePaymentMethod = async (req, res) => {
     const { tipoId, alias, detalles } = req.body;
     const usuarioId = req.user.id;
     try {
+        const usuarioId = req.user?.id ?? null;
         const pool = await connectDB();
+
+        // Ensure the method belongs to the user (don't allow editing global methods or others')
+        const ownerCheck = await pool.request()
+            .input('ID', sql.Int, id)
+            .query('SELECT UsuarioID FROM MetodoDePago WHERE ID = @ID');
+
+        const owner = ownerCheck.recordset[0]?.UsuarioID ?? null;
+        if (owner !== usuarioId) {
+            return res.status(403).json({ error: 'No tienes permiso para modificar este método de pago' });
+        }
+
         const result = await pool.request()
             .input('ID', sql.Int, id)
             .input('UsuarioID', sql.Int, usuarioId)
             .input('TipoID', sql.Int, tipoId)
-            .input('Alias', sql.NVarChar, alias)
-            .input('Detalles', sql.NVarChar, detalles ?? null)
+            .input('Alias', sql.NVarChar(40), alias)
+            .input('Detalles', sql.NVarChar(500), detalles ?? null)
             .query(`
                 UPDATE MetodoDePago
                 SET TipoID = @TipoID, Alias = @Alias, Detalles = @Detalles
@@ -102,3 +132,37 @@ const getPaymentTypes = async (req, res) => {
 };
 
 module.exports = { getPaymentMethods, getPaymentTypes, createPaymentMethod, deletePaymentMethod, updatePaymentMethod };
+
+const setDefaultPaymentMethod = async (req, res) => {
+    const { id } = req.params;
+    const usuarioId = req.user?.id ?? null;
+    try {
+        const pool = await connectDB();
+
+        // Check method exists and ownership (allow if global or owned by user)
+        const check = await pool.request()
+            .input('ID', sql.Int, id)
+            .query('SELECT UsuarioID FROM MetodoDePago WHERE ID = @ID');
+
+        const owner = check.recordset[0]?.UsuarioID;
+        if (!check.recordset.length) {
+            return res.status(404).json({ error: 'Método de pago no encontrado.' });
+        }
+        if (owner !== null && owner !== usuarioId) {
+            return res.status(403).json({ error: 'No puedes establecer como predeterminado un método de otro usuario.' });
+        }
+
+        // Set as user's default
+        await pool.request()
+            .input('UsuarioID', sql.Int, usuarioId)
+            .input('MetodoDePagoID', sql.Int, id)
+            .query('UPDATE Usuario SET MetodoDePagoID = @MetodoDePagoID WHERE ID = @UsuarioID');
+
+        res.json({ message: 'Método establecido como predeterminado.' });
+    } catch (error) {
+        console.error('Error al establecer método predeterminado:', error);
+        res.status(500).json({ error: 'Error estableciendo método predeterminado' });
+    }
+};
+
+module.exports.setDefaultPaymentMethod = setDefaultPaymentMethod;

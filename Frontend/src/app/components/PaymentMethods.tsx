@@ -4,7 +4,7 @@ import { PaymentMethodForm } from "./PaymentMethodForm";
 import { useThemeColors } from "../hooks/useThemeColors";
 import {
   getPaymentMethods, getPaymentTypes,
-  createPaymentMethod, updatePaymentMethod, deletePaymentMethod,
+  createPaymentMethod, updatePaymentMethod, deletePaymentMethod, setDefaultPaymentMethod,
 } from "../lib/api";
 
 interface PaymentMethod {
@@ -55,6 +55,16 @@ export function PaymentMethods() {
   const handleEdit = (method: PaymentMethod) => {
     setEditingMethod(method);
     setIsFormOpen(true);
+  };
+
+  const handleSetDefault = async (id: number) => {
+    if (!confirm('Establecer este método como predeterminado?')) return;
+    try {
+      await setDefaultPaymentMethod(id);
+      await loadData();
+    } catch (err) {
+      alert('Error: ' + (err as Error).message);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -139,6 +149,17 @@ export function PaymentMethods() {
               >
                 <Trash2 className="w-4 h-4" aria-hidden="true" />
               </button>
+              {!method.isDefault && (
+                <button
+                  type="button"
+                  onClick={() => handleSetDefault(method.id)}
+                  aria-label={`Establecer ${method.alias} como predeterminado`}
+                  className="px-4 py-2 rounded-lg hover:opacity-80 transition-all"
+                  style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
+                >
+                  Predeterminar
+                </button>
+              )}
             </div>
           </div>
         ))}

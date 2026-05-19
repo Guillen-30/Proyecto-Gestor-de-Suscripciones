@@ -10,7 +10,7 @@ const createSubscription = async (req, res) => {
     // Extraemos los nuevos campos imageUrl e imageAlt del body de la petición
     const { 
         metodoDePagoId, cicloFacturacionId, estadoId, categoriaId, 
-        descripcion, costo, fechaRenovacion, imageUrl, imageAlt 
+        descripcion, costo, fechaRenovacion, imageUrl, imageAlt, notas 
     } = req.body;
     
     try {
@@ -28,6 +28,7 @@ const createSubscription = async (req, res) => {
             // Agregamos los nuevos campos para el Stored Procedure
             .input('ImagenURL', sql.NVarChar, imageUrl || null)
             .input('ImagenAlt', sql.NVarChar, imageAlt || null)
+            .input('Notas', sql.NVarChar(500), notas || null)
             .execute('dbo.spCrearSuscripcion');
             
         res.status(201).json({ 
@@ -50,7 +51,7 @@ const updateSubscription = async (req, res) => {
     
     const { 
         metodoDePagoId, cicloFacturacionId, estadoId, categoriaId, 
-        descripcion, costo, fechaRenovacion, imageUrl, imageAlt 
+        descripcion, costo, fechaRenovacion, imageUrl, imageAlt, notas 
     } = req.body;
     
     try {
@@ -70,6 +71,7 @@ const updateSubscription = async (req, res) => {
             // Agregamos los nuevos campos de imagen
             .input('ImagenURL', sql.NVarChar, imageUrl || null)
             .input('ImagenAlt', sql.NVarChar, imageAlt || null)
+            .input('Notas', sql.NVarChar(500), notas || null)
             .execute('dbo.spActualizarSuscripcion');
             
         res.json({ message: 'Suscripción actualizada exitosamente' });
@@ -92,16 +94,17 @@ const getSubscriptions = async (req, res) => {
             .query(`
                 SELECT 
                     s.ID AS id, 
-                    s.Descripcion AS name, 
-                    s.Costo AS cost, 
-                    s.FechaRenovacion AS billingDate, 
-                    cf.Descripcion AS billingCycle, 
-                    mp.Alias AS paymentMethod,
-                    e.Descripcion AS status,
-                    s.ImagenURL AS imageUrl,
-                    s.ImagenAlt AS imageAlt,
-                    c.Nombre AS categoryName,
-                    c.Color AS categoryColor
+                        s.Descripcion AS name, 
+                        s.Costo AS cost, 
+                        s.FechaRenovacion AS billingDate, 
+                        cf.Descripcion AS billingCycle, 
+                        mp.Alias AS paymentMethod,
+                        e.Descripcion AS status,
+                        s.ImagenURL AS imageUrl,
+                        s.ImagenAlt AS imageAlt,
+                        c.Nombre AS categoryName,
+                        c.Color AS categoryColor,
+                        s.Notas AS notes
                 FROM Suscripcion s
                 INNER JOIN Estado e ON s.EstadoID = e.ID
                 INNER JOIN cicloFacturacion cf ON s.cicloFacturacionID = cf.ID
