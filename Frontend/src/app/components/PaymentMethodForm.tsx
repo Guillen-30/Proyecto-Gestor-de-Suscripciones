@@ -58,7 +58,7 @@ export function PaymentMethodForm({ isOpen, onClose, onSave, editData, typeOptio
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
           >
-            <X className="w-5 h-5 text-foreground" aria-hidden="true" />
+            <X className="w-5 h-5" aria-hidden="true" style={{ color: colors.primaryForeground }}/>
           </button>
         </div>
 

@@ -162,7 +162,7 @@ export function CredentialVault() {
                 <button
                   type="button"
                   onClick={() => handleEdit(cred)}
-                  aria-label={`Editar ${cred.service}`}
+                  aria-label={`Editar Credencial`}
                   className="p-2 rounded-lg hover:opacity-80 transition-all"
                   style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
                 >
@@ -171,7 +171,7 @@ export function CredentialVault() {
                 <button
                   type="button"
                   onClick={() => handleDelete(cred.id)}
-                  aria-label={`Eliminar ${cred.service}`}
+                  aria-label={`Eliminar Credencial`}
                   className="p-2 rounded-lg hover:opacity-80 transition-all"
                   style={{ backgroundColor: colors.destructive, color: '#ffffff' }}
                 >

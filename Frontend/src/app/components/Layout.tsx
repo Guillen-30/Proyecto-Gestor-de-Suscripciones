@@ -164,18 +164,17 @@ export function Layout() {
             <button
               type="button"
               onClick={() => setShowNotifications(true)}
-              aria-label="Notificaciones"
               aria-haspopup="dialog"
               aria-expanded={showNotifications}
               aria-controls="notifications-modal"
               className="p-2 rounded-lg relative transition-all hover:opacity-80"
               style={{ backgroundColor: 'var(--color-primary-action)', color: '#ffffff' }}
             >
+              <span className="sr-only">Notificaciones</span>
               <Bell className="w-5 h-5" />
               {badgeCount > 0 && (
                 <span
                   className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
-                  aria-label={`${badgeCount} notificaciones sin leer`}
                   style={{ backgroundColor: theme === 'dark' ? '#E61445' : '#dc2626', color: '#fff' }}
                 >
                   {badgeCount > 99 ? '99+' : badgeCount}

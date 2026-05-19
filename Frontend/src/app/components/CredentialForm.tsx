@@ -82,9 +82,9 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
                 style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
               />
             </div>
-
+            <div className="md:col-span-2">
             <div>
-              <label className="text-sm text-secondary mb-2 block">Nombre de Usuario</label>
+              <label className="text-sm text-secondary mb-2 block">Usuario</label>
               <input
                 type="text"
                 value={formData.username}
@@ -94,17 +94,6 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
                 style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
               />
             </div>
-
-            <div>
-              <label className="text-sm text-secondary mb-2 block">Correo Electrónico</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="usuario@email.com"
-                className="w-full px-4 py-3 rounded-lg outline-none"
-                style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
-              />
             </div>
 
             <div className="md:col-span-2">

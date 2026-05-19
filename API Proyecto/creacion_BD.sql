@@ -258,3 +258,118 @@ UNION ALL SELECT 'Suscripcion',       COUNT(*) FROM Suscripcion
 UNION ALL SELECT 'Credencial',        COUNT(*) FROM Credencial
 UNION ALL SELECT 'HistorialDePago',   COUNT(*) FROM HistorialDePago;
 GO
+
+
+-- ============================================================
+--  INSERCIÓN DE USUARIOS DE PRUEBA
+-- ============================================================
+
+DECLARE @IdUsuarioLleno INT;
+DECLARE @IdUsuarioVacio INT;
+DECLARE @IdMetodoPago1 INT;
+DECLARE @IdMetodoPago2 INT;
+DECLARE @IdCatCloud INT;
+DECLARE @IdCatGaming INT;
+DECLARE @IdCatSalud INT;
+DECLARE @IdCatMascotas INT;
+DECLARE @IdSubCopilot INT;
+DECLARE @IdSubICloud INT;
+DECLARE @IdSubGym INT;
+DECLARE @IdSubNintendo INT;
+
+-- ============================================================
+-- 1. USUARIO LLENO (Muchas cosas para probar)
+-- ============================================================
+
+-- Contraseña simulada para '11111111' usando la clave secreta proporcionada
+INSERT INTO Usuario (Contrasena, Nombre)
+VALUES ('$2b$10$8PPi.7ws.v.nSkO42de9f.NWIbYaVbe6H75Hhdc7Ye1mgZuU566Je', 'Sebastian Guillen Guzman');
+SET @IdUsuarioLleno = SCOPE_IDENTITY();
+
+INSERT INTO Correo (UsuarioID, Descripcion)
+VALUES (@IdUsuarioLleno, 'sguillenguzman@gmail.com');
+
+-- Métodos de Pago
+INSERT INTO MetodoDePago (UsuarioID, TipoID, Alias, Detalles)
+VALUES (@IdUsuarioLleno, 2, 'Tarjeta BCR Débito', 'Tarjeta principal para compras en línea');
+SET @IdMetodoPago1 = SCOPE_IDENTITY();
+
+INSERT INTO MetodoDePago (UsuarioID, TipoID, Alias, Detalles)
+VALUES (@IdUsuarioLleno, 3, 'SINPE Móvil', 'Transferencias rápidas');
+SET @IdMetodoPago2 = SCOPE_IDENTITY();
+
+-- Asignar método de pago principal al usuario
+UPDATE Usuario SET MetodoDePagoID = @IdMetodoPago1 WHERE ID = @IdUsuarioLleno;
+
+-- Categorías
+INSERT INTO Categoria (UsuarioID, Nombre, Descripcion, Color)
+VALUES (@IdUsuarioLleno, 'Servicios Cloud', 'Almacenamiento e IA', '#0EA5E9');
+SET @IdCatCloud = SCOPE_IDENTITY();
+
+INSERT INTO Categoria (UsuarioID, Nombre, Descripcion, Color)
+VALUES (@IdUsuarioLleno, 'Gaming & Emulación', 'Suscripciones de consolas', '#EAB308');
+SET @IdCatGaming = SCOPE_IDENTITY();
+
+INSERT INTO Categoria (UsuarioID, Nombre, Descripcion, Color)
+VALUES (@IdUsuarioLleno, 'Salud y Deporte', 'Gastos físicos y entrenamiento', '#22C55E');
+SET @IdCatSalud = SCOPE_IDENTITY();
+
+INSERT INTO Categoria (UsuarioID, Nombre, Descripcion, Color)
+VALUES (@IdUsuarioLleno, 'Mascotas', 'Gastos veterinarios y comida', '#F97316');
+SET @IdCatMascotas = SCOPE_IDENTITY();
+
+-- Suscripciones
+INSERT INTO Suscripcion (UsuarioID, MetodoDePagoID, cicloFacturacionID, EstadoID, CategoriaID, Descripcion, Costo, FechaRenovacion, Notas)
+VALUES (@IdUsuarioLleno, @IdMetodoPago1, 2, 1, @IdCatCloud, 'GitHub Copilot (Student)', 0.00, '2026-06-15', 'Renovación gratuita por correo universitario del TEC');
+SET @IdSubCopilot = SCOPE_IDENTITY();
+
+INSERT INTO Suscripcion (UsuarioID, MetodoDePagoID, cicloFacturacionID, EstadoID, CategoriaID, Descripcion, Costo, FechaRenovacion, Notas)
+VALUES (@IdUsuarioLleno, @IdMetodoPago1, 2, 1, @IdCatCloud, 'Google AI Plus 200GB', 9.99, '2026-06-10', 'Plan de almacenamiento extendido');
+
+INSERT INTO Suscripcion (UsuarioID, MetodoDePagoID, cicloFacturacionID, EstadoID, CategoriaID, Descripcion, Costo, FechaRenovacion, Notas)
+VALUES (@IdUsuarioLleno, @IdMetodoPago1, 2, 1, @IdCatCloud, 'iCloud Family Sharing', 2.99, '2026-06-05', 'Almacenamiento familiar compartido');
+SET @IdSubICloud = SCOPE_IDENTITY();
+
+INSERT INTO Suscripcion (UsuarioID, MetodoDePagoID, cicloFacturacionID, EstadoID, CategoriaID, Descripcion, Costo, FechaRenovacion, Notas)
+VALUES (@IdUsuarioLleno, @IdMetodoPago2, 2, 1, @IdCatSalud, 'Centro Deportivo MP', 25.00, '2026-06-01', 'Mensualidad del gimnasio en Cartago');
+SET @IdSubGym = SCOPE_IDENTITY();
+
+INSERT INTO Suscripcion (UsuarioID, MetodoDePagoID, cicloFacturacionID, EstadoID, CategoriaID, Descripcion, Costo, FechaRenovacion, Notas)
+VALUES (@IdUsuarioLleno, @IdMetodoPago1, 5, 1, @IdCatGaming, 'Nintendo Switch Online', 19.99, '2026-11-20', 'Plan básico anual');
+SET @IdSubNintendo = SCOPE_IDENTITY();
+
+-- Credenciales (Solo para algunas suscripciones donde aplica)
+INSERT INTO Credencial (UsuarioID, SuscripcionID, Contrasena, NombreUsuario, URL, Descripcion)
+VALUES (@IdUsuarioLleno, @IdSubCopilot, 'deef00f47ecec921e08690b551ca8772:305b2a359a425e03782ce33e3b968456', 'sguillenguzman', 'https://github.com', 'Cuenta de GitHub para proyectos IC4302');
+
+INSERT INTO Credencial (UsuarioID, SuscripcionID, Contrasena, NombreUsuario, URL, Descripcion)
+VALUES (@IdUsuarioLleno, @IdSubICloud, 'f8b5f250448280ab736180a7fe598695:e608bd1ba8f82b0942cb975e9a20dfcb', 'sguillenguzman@gmail.com', 'https://icloud.com', 'Apple ID');
+
+INSERT INTO Credencial (UsuarioID, SuscripcionID, Contrasena, NombreUsuario, URL, Descripcion)
+VALUES (@IdUsuarioLleno, @IdSubNintendo, 'df37535f0b90f41e9ebfa94e85988fc3:0f257571d7eefe1eefbb90746672d2f0', 'sguillen', 'https://nintendo.com', 'Cuenta Nintendo principal');
+
+-- Historial de Pago (Simulando pagos anteriores)
+INSERT INTO HistorialDePago (UsuarioID, SuscripcionID, Fecha, Monto)
+VALUES 
+(@IdUsuarioLleno, @IdSubGym, '2026-03-01', 25.00),
+(@IdUsuarioLleno, @IdSubGym, '2026-04-01', 25.00),
+(@IdUsuarioLleno, @IdSubGym, '2026-05-01', 25.00),
+(@IdUsuarioLleno, @IdSubICloud, '2026-04-05', 2.99),
+(@IdUsuarioLleno, @IdSubICloud, '2026-05-05', 2.99),
+(@IdUsuarioLleno, @IdSubNintendo, '2025-11-20', 19.99);
+
+-- ============================================================
+-- 2. USUARIO VACÍO (Solo cuenta y correo, sin datos asociados)
+-- ============================================================
+
+-- Contraseña simulada para '22222222' usando la clave secreta proporcionada
+INSERT INTO Usuario (Contrasena, Nombre)
+VALUES ('$2b$10$9XdMXK2GjV9y6RZ33R6rRuP5pWEM0dGzRN0B2BbWvFrZgMgPtqnRG', 'Sebastian Guzman');
+SET @IdUsuarioVacio = SCOPE_IDENTITY();
+
+INSERT INTO Correo (UsuarioID, Descripcion)
+VALUES (@IdUsuarioVacio, 'crguillenb2@gmail.com');
+
+-- (No se insertan métodos de pago, categorías, suscripciones ni historial para este usuario)
+
+GO

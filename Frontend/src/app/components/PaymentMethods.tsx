@@ -153,11 +153,11 @@ export function PaymentMethods() {
                 <button
                   type="button"
                   onClick={() => handleSetDefault(method.id)}
-                  aria-label={`Establecer ${method.alias} como predeterminado`}
+                  aria-label={`Establecer como predeterminado`}
                   className="px-4 py-2 rounded-lg hover:opacity-80 transition-all"
                   style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
                 >
-                  Predeterminar
+                  Establecer como predeterminado
                 </button>
               )}
             </div>
