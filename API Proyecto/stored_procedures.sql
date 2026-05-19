@@ -398,7 +398,8 @@ BEGIN
             RETURN;
         END
 
-        -- Desasociar suscripciones antes de eliminar el método de pago
+        -- Desasociar referencias antes de eliminar el método de pago
+        UPDATE Usuario     SET MetodoDePagoID = NULL WHERE MetodoDePagoID = @ID;
         UPDATE Suscripcion SET MetodoDePagoID = NULL WHERE MetodoDePagoID = @ID;
 
         DELETE FROM MetodoDePago WHERE ID = @ID AND UsuarioID = @UsuarioID;
