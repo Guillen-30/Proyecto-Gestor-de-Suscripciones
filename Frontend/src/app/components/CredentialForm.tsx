@@ -1,5 +1,5 @@
 import { X, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useThemeColors } from "../hooks/useThemeColors";
 
 interface CredentialFormProps {
@@ -9,17 +9,17 @@ interface CredentialFormProps {
   editData?: any;
 }
 
+const emptyForm = () => ({ service: "", username: "", email: "", password: "", website: "" });
+
 export function CredentialForm({ isOpen, onClose, onSave, editData }: CredentialFormProps) {
   const colors = useThemeColors();
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState(editData || {
-    service: "",
-    username: "",
-    email: "",
-    password: "",
-    website: "",
-    notes: "",
-  });
+  const [formData, setFormData] = useState(editData || emptyForm());
+
+  useEffect(() => {
+    setFormData(editData || emptyForm());
+    setShowPassword(false);
+  }, [editData, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,14 +28,7 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
       id: editData?.id || Date.now(),
       lastModified: new Date().toISOString().split('T')[0],
     });
-    setFormData({
-      service: "",
-      username: "",
-      email: "",
-      password: "",
-      website: "",
-      notes: "",
-    });
+    setFormData(emptyForm());
     onClose();
   };
 
@@ -71,7 +64,7 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
           >
-            <X className="w-5 h-5 text-foreground" aria-hidden="true" style={{ color: "#FFFFFF" }} />
+            <X className="w-5 h-5" aria-hidden="true" style={{ color: colors.primaryForeground }} />
           </button>
         </div>
 
@@ -138,9 +131,9 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
             </div>
 
             <div className="md:col-span-2">
-              <label className="text-sm text-secondary mb-2 block">Sitio Web / URL</label>
+              <label className="text-sm text-secondary mb-2 block">Sitio Web / URL (Opcional)</label>
               <input
-                type="url"
+                type="text"
                 value={formData.website}
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                 placeholder="https://ejemplo.com"
@@ -149,17 +142,6 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
               />
             </div>
 
-            <div className="md:col-span-2">
-              <label className="text-sm text-secondary mb-2 block">Notas (Opcional)</label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Información adicional, preguntas de seguridad, etc..."
-                rows={3}
-                className="w-full px-4 py-3 rounded-lg outline-none resize-none"
-                style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
-              />
-            </div>
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -174,7 +156,7 @@ export function CredentialForm({ isOpen, onClose, onSave, editData }: Credential
             <button
               type="submit"
               className="flex-1 px-6 py-3 rounded-lg transition-all hover:opacity-90"
-              style={{ backgroundColor: colors.primaryAction, color:"#FFFFFF" }}
+              style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
             >
               {editData ? "Guardar Cambios" : "Agregar Credencial"}
             </button>

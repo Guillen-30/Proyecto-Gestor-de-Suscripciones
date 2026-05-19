@@ -18,7 +18,7 @@ const createSubscription = async (req, res) => {
         
         const result = await pool.request()
             .input('UsuarioID', sql.Int, usuarioId) 
-            .input('MetodoDePagoID', sql.Int, metodoDePagoId)
+            .input('MetodoDePagoID', sql.Int, metodoDePagoId || null)
             .input('cicloFacturacionID', sql.Int, cicloFacturacionId)
             .input('EstadoID', sql.Int, estadoId)
             .input('CategoriaID', sql.Int, categoriaId || null)
@@ -108,7 +108,7 @@ const getSubscriptions = async (req, res) => {
                 FROM Suscripcion s
                 INNER JOIN Estado e ON s.EstadoID = e.ID
                 INNER JOIN cicloFacturacion cf ON s.cicloFacturacionID = cf.ID
-                INNER JOIN MetodoDePago mp ON s.MetodoDePagoID = mp.ID
+                LEFT JOIN MetodoDePago mp ON s.MetodoDePagoID = mp.ID
                 LEFT JOIN Categoria c ON s.CategoriaID = c.ID
                 WHERE s.UsuarioID = @UsuarioID
                 ORDER BY s.FechaRenovacion ASC

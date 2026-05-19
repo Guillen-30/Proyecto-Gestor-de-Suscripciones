@@ -40,6 +40,7 @@ export function Layout() {
   })();
 
   const handleLogout = () => {
+    if (!confirm("¿Estás seguro de que quieres cerrar la sesión?")) return;
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
@@ -105,7 +106,7 @@ export function Layout() {
                   className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
                   style={{
                     backgroundColor: isActive ? 'var(--color-primary-action)' : 'transparent',
-                    color: isActive ? (theme === 'dark' ? '#e8e8e8' : '#ffffff') : 'var(--text-secondary)',
+                    color: isActive ? ('#ffffff') : 'var(--text-secondary)',
                   }}
                 >
                   <Icon className="w-5 h-5" />
@@ -155,7 +156,7 @@ export function Layout() {
                 setShowSubscriptionForm(true);
               }}
               className="px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all hover:opacity-90"
-              style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
+              style={{ backgroundColor: 'var(--color-primary-action)', color: '#ffffff' }}
             >
               <Plus className="w-5 h-5" />
               Agregar Suscripción
@@ -168,7 +169,7 @@ export function Layout() {
               aria-expanded={showNotifications}
               aria-controls="notifications-modal"
               className="p-2 rounded-lg relative transition-all hover:opacity-80"
-              style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
+              style={{ backgroundColor: 'var(--color-primary-action)', color: '#ffffff' }}
             >
               <Bell className="w-5 h-5" />
               {badgeCount > 0 && (
@@ -188,7 +189,7 @@ export function Layout() {
               aria-expanded={showAccountModal}
               aria-controls="account-modal"
               className="p-2 rounded-lg transition-all hover:opacity-80"
-              style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
+              style={{ backgroundColor: 'var(--color-primary-action)', color: '#ffffff' }}
               onClick={() => setShowAccountModal(true)}
             >
               <User className="w-5 h-5" />

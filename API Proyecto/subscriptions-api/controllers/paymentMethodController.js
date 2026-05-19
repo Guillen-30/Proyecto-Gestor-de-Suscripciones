@@ -1,6 +1,7 @@
 const { connectDB, sql } = require('../config/db');
 
 const getPaymentMethods = async (req, res) => {
+    const usuarioId = req.user.id;
     try {
         const usuarioId = req.user?.id ?? null;
         const pool = await connectDB();
@@ -16,7 +17,6 @@ const getPaymentMethods = async (req, res) => {
                 FROM MetodoDePago mp
                 INNER JOIN Tipo t ON mp.TipoID = t.ID
                 WHERE mp.UsuarioID = @UsuarioID
-                   OR mp.ID = (SELECT MetodoDePagoID FROM Usuario WHERE ID = @UsuarioID)
                 ORDER BY mp.Alias ASC
             `);
         res.json({ metodosPago: result.recordset });
@@ -28,6 +28,7 @@ const getPaymentMethods = async (req, res) => {
 
 const createPaymentMethod = async (req, res) => {
     const { tipoId, alias, detalles } = req.body;
+    const usuarioId = req.user.id;
     try {
         const usuarioId = req.user?.id ?? null;
         const pool = await connectDB();
@@ -46,6 +47,7 @@ const createPaymentMethod = async (req, res) => {
 
 const deletePaymentMethod = async (req, res) => {
     const { id } = req.params;
+    const usuarioId = req.user.id;
     try {
         const usuarioId = req.user?.id ?? null;
         const pool = await connectDB();
@@ -66,6 +68,7 @@ const deletePaymentMethod = async (req, res) => {
 
         await pool.request()
             .input('ID', sql.Int, id)
+            .input('UsuarioID', sql.Int, usuarioId)
             .execute('dbo.spEliminarMetodoPago');
         res.json({ message: 'Método de pago eliminado exitosamente' });
     } catch (error) {
@@ -80,6 +83,7 @@ const deletePaymentMethod = async (req, res) => {
 const updatePaymentMethod = async (req, res) => {
     const { id } = req.params;
     const { tipoId, alias, detalles } = req.body;
+    const usuarioId = req.user.id;
     try {
         const usuarioId = req.user?.id ?? null;
         const pool = await connectDB();
@@ -96,13 +100,14 @@ const updatePaymentMethod = async (req, res) => {
 
         const result = await pool.request()
             .input('ID', sql.Int, id)
+            .input('UsuarioID', sql.Int, usuarioId)
             .input('TipoID', sql.Int, tipoId)
             .input('Alias', sql.NVarChar(40), alias)
             .input('Detalles', sql.NVarChar(500), detalles ?? null)
             .query(`
                 UPDATE MetodoDePago
                 SET TipoID = @TipoID, Alias = @Alias, Detalles = @Detalles
-                WHERE ID = @ID
+                WHERE ID = @ID AND UsuarioID = @UsuarioID
             `);
         if (result.rowsAffected[0] === 0) {
             return res.status(404).json({ error: 'Método de pago no encontrado.' });

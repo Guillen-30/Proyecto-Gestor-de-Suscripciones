@@ -20,7 +20,7 @@ const getPaymentFormData = async (req, res) => {
                 `),
             pool.request()
                 .input('UsuarioID', sql.Int, usuarioId)
-                .query('SELECT ID, Alias FROM MetodoDePago ORDER BY Alias ASC WHERE UsuarioID = @UsuarioID OR UsuarioID IS NULL')
+                .query('SELECT ID, Alias FROM MetodoDePago WHERE UsuarioID = @UsuarioID ORDER BY Alias ASC')
         ]);
         
         res.json({ suscripciones: subscriptions.recordset, metodosPago: paymentMethods.recordset });
@@ -40,11 +40,13 @@ const registerPayment = async (req, res) => {
     try {
         const pool = await connectDB();
         
-        // 1. Actualizamos el método de pago por si el usuario decidió usar una tarjeta diferente
-        await pool.request()
-            .input('SuscripcionID', sql.Int, suscripcionId)
-            .input('MetodoDePagoID', sql.Int, metodoDePagoId)
-            .query('UPDATE Suscripcion SET MetodoDePagoID = @MetodoDePagoID WHERE ID = @SuscripcionID');
+        // 1. Actualizamos el método de pago solo si el usuario eligió uno
+        if (metodoDePagoId) {
+            await pool.request()
+                .input('SuscripcionID', sql.Int, suscripcionId)
+                .input('MetodoDePagoID', sql.Int, metodoDePagoId)
+                .query('UPDATE Suscripcion SET MetodoDePagoID = @MetodoDePagoID WHERE ID = @SuscripcionID');
+        }
             
         // 2. Registramos el movimiento en el historial y calculamos la nueva fecha de corte
         const result = await pool.request()
@@ -74,10 +76,11 @@ const getHistory = async (req, res) => {
         const result = await pool.request()
             .input('UsuarioID', sql.Int, usuarioId)
             .query(`
-                SELECT h.ID, h.Fecha, h.Monto, h.SuscripcionID, s.Descripcion AS Suscripcion, mp.Alias AS MetodoPago
+                SELECT h.ID, h.Fecha, h.Monto, h.SuscripcionID, s.Descripcion AS Suscripcion,
+                       s.MetodoDePagoID, mp.Alias AS MetodoPago
                 FROM HistorialDePago h
                 INNER JOIN Suscripcion s ON h.SuscripcionID = s.ID
-                INNER JOIN MetodoDePago mp ON s.MetodoDePagoID = mp.ID
+                LEFT JOIN MetodoDePago mp ON s.MetodoDePagoID = mp.ID
                 WHERE h.UsuarioID = @UsuarioID
                 ORDER BY h.Fecha DESC
             `);
@@ -131,7 +134,7 @@ const getUpcomingSubscriptions = async (req, res) => {
 const updatePayment = async (req, res) => {
     const { id } = req.params;
     const usuarioId = req.user.id;
-    const { monto, fecha } = req.body;
+    const { monto, fecha, suscripcionId, metodoDePagoId } = req.body;
     try {
         const pool = await connectDB();
         const result = await pool.request()
@@ -139,13 +142,22 @@ const updatePayment = async (req, res) => {
             .input('UsuarioID', sql.Int, usuarioId)
             .input('Monto', sql.Decimal(10, 2), monto)
             .input('Fecha', sql.Date, fecha)
+            .input('SuscripcionID', sql.Int, suscripcionId || null)
             .query(`
                 UPDATE HistorialDePago
-                SET Monto = @Monto, Fecha = @Fecha
+                SET Monto = @Monto, Fecha = @Fecha,
+                    SuscripcionID = ISNULL(@SuscripcionID, SuscripcionID)
                 WHERE ID = @ID AND UsuarioID = @UsuarioID
             `);
         if (result.rowsAffected[0] === 0) {
             return res.status(404).json({ error: 'Pago no encontrado o sin permisos' });
+        }
+        // Update the subscription's payment method if both IDs are provided
+        if (suscripcionId && metodoDePagoId !== undefined) {
+            await pool.request()
+                .input('SuscripcionID', sql.Int, suscripcionId)
+                .input('MetodoDePagoID', sql.Int, metodoDePagoId || null)
+                .query('UPDATE Suscripcion SET MetodoDePagoID = @MetodoDePagoID WHERE ID = @SuscripcionID');
         }
         res.json({ message: 'Pago actualizado correctamente' });
     } catch (error) {

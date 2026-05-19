@@ -39,7 +39,7 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Activa":
-        return "#52b788";
+        return colors.success;
       case "Pausada":
         return "#ffd166";
       case "Cancelada":
@@ -120,7 +120,7 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction}}
           >
-            <X className="w-5 h-5 text-foreground" style={{ color: '#ffffff' }}/>
+            <X className="w-5 h-5" style={{ color: colors.primaryForeground }}/>
           </button>
         </div>
 
@@ -134,16 +134,16 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
               borderColor: colors.border
             }}
           >
-            <p className="text-sm text-[#FFFFFF]/80 mb-2">Costo de Suscripción</p>
+            <p className="text-sm mb-2" style={{ color: colors.primaryForeground, opacity: 0.8 }}>Costo de Suscripción</p>
             <div className="flex items-baseline justify-center gap-2">
-              <span className="text-4xl text-[#FFFFFF] color-[#FFFFFF]">
+              <span className="text-4xl" style={{ color: colors.primaryForeground }}>
                 ${subscription.cost.toFixed(2)}
               </span>
-              <span className="text-xl text-[#FFFFFF]/80">
+              <span className="text-xl" style={{ color: colors.primaryForeground, opacity: 0.8 }}>
                 {subscription.currency || "USD"}
               </span>
             </div>
-            <p className="text-sm text-[#FFFFFF]/70 mt-2">
+            <p className="text-sm mt-2" style={{ color: colors.primaryForeground, opacity: 0.7 }}>
               {getCycleLabel(subscription.billingCycle)}
             </p>
           </div>

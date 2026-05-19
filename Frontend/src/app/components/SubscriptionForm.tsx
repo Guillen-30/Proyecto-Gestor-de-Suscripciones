@@ -94,7 +94,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             className="p-2 rounded-lg hover:opacity-80 transition-all"
             style={{ backgroundColor: colors.primaryAction }}
           >
-            <X className="w-5 h-5 text-foreground" style={{ color: '#ffffff' }} />
+            <X className="w-5 h-5" style={{ color: colors.primaryForeground }} />
           </button>
         </div>
 
@@ -115,7 +115,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             </div>
 
             <div>
-              <label className="text-sm text-secondary mb-2 block">Categoría *</label>
+              <label className="text-sm text-secondary mb-2 block">Categoría</label>
               <select
                 aria-label="Categoría"
                 value={formData.category}
@@ -123,7 +123,7 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
                 className="w-full px-4 py-3 rounded-lg outline-none"
                 style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
               >
-                <option value="">Seleccionar categoría</option>
+                <option value="">Ninguna</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
@@ -190,16 +190,15 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
             </div>
 
             <div>
-              <label className="text-sm text-secondary mb-2 block">Método de Pago *</label>
+              <label className="text-sm text-secondary mb-2 block">Método de Pago</label>
               <select
                 aria-label="Método de pago"
                 value={formData.paymentMethod}
                 onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                required
                 className="w-full px-4 py-3 rounded-lg outline-none"
                 style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
               >
-                <option value="">Seleccionar método</option>
+                <option value="">Ninguno</option>
                 {paymentMethods.map((method) => (
                   <option key={method.id} value={method.alias}>{method.alias}</option>
                 ))}
@@ -249,18 +248,6 @@ export function SubscriptionForm({ isOpen, onClose, onSave, editData, categories
               </p>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="text-sm text-secondary mb-2 block">Notas (Opcional)</label>
-              <textarea
-                aria-label="Notas"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Información adicional sobre la suscripción..."
-                rows={3}
-                className="w-full px-4 py-3 rounded-lg outline-none resize-none"
-                style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
-              />
-            </div>
           </div>
 
           <div className="flex gap-3 pt-4">

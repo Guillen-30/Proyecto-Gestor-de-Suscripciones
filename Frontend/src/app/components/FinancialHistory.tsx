@@ -17,6 +17,7 @@ interface HistoryItem {
   category: string;
   method: string;
   subscriptionId?: number;
+  methodId?: number;
 }
 
 export function FinancialHistory() {
@@ -45,6 +46,7 @@ export function FinancialHistory() {
         category: '',
         method: h.MetodoPago || '',
         subscriptionId: h.SuscripcionID,
+        methodId: h.MetodoDePagoID ?? undefined,
       })));
       setMonthlyTrend(expenses);
     } catch (err) {
@@ -84,11 +86,13 @@ export function FinancialHistory() {
         await updatePayment(editingPayment.id, {
           monto: payment.amount / rate,
           fecha: payment.date,
+          suscripcionId: payment.subscriptionId ?? null,
+          metodoDePagoId: payment.paymentMethodId ?? null,
         });
       } else {
         await registerPayment({
           suscripcionId: payment.subscriptionId,
-          metodoDePagoId: payment.paymentMethodId,
+          metodoDePagoId: payment.paymentMethodId ?? null,
           monto: payment.amount / rate,
           fecha: payment.date,
         });
@@ -134,7 +138,7 @@ export function FinancialHistory() {
   ).map(([name, value], i) => ({
     name,
     value,
-    color: ['#646cff', '#52b788', '#ffd166', '#E61445', '#118ab2'][i % 5],
+    color: ['#646cff', colors.success, '#ffd166', '#E61445', '#118ab2'][i % 5],
   }));
 
   return (
@@ -148,7 +152,7 @@ export function FinancialHistory() {
               <p className="text-xs text-muted-foreground mt-1">Histórico registrado</p>
             </div>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
-              <DollarSign className="w-6 h-6" style={{ color: '#ffffff' }} />
+              <DollarSign className="w-6 h-6" style={{ color: colors.primaryForeground }} />
             </div>
           </div>
         </div>
@@ -161,12 +165,12 @@ export function FinancialHistory() {
               <div className="flex items-center gap-1 mt-1">
                 {parseFloat(percentChange) > 0
                   ? <TrendingUp className="w-4 h-4 text-[#E61445]" />
-                  : <TrendingDown className="w-4 h-4 text-[#52b788]" />}
+                  : <TrendingDown className="w-4 h-4" style={{ color: colors.success }} />}
                 <p className="text-xs text-secondary">{percentChange}% vs mes anterior</p>
               </div>
             </div>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
-              <Calendar className="w-6 h-6" style={{ color: '#ffffff' }} />
+              <Calendar className="w-6 h-6" style={{ color: colors.primaryForeground }} />
             </div>
           </div>
         </div>
@@ -181,7 +185,7 @@ export function FinancialHistory() {
               <p className="text-xs text-muted-foreground mt-1">Últimos {monthlyTrend.length} meses</p>
             </div>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
-              <TrendingUp className="w-6 h-6" style={{ color: '#ffffff' }} />
+              <TrendingUp className="w-6 h-6" style={{ color: colors.primaryForeground }} />
             </div>
           </div>
         </div>
@@ -281,7 +285,7 @@ export function FinancialHistory() {
                         onClick={() => handleEditPayment(payment)}
                         aria-label={`Editar pago de ${payment.service}`}
                         className="p-2 rounded-lg hover:opacity-80 transition-all"
-                        style={{ backgroundColor: colors.primaryAction, color: '#ffffff' }}
+                        style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
@@ -319,6 +323,8 @@ export function FinancialHistory() {
           method: editingPayment.method,
           date: editingPayment.date,
           amount: editingPayment.amount,
+          subscriptionId: editingPayment.subscriptionId,
+          methodId: editingPayment.methodId,
         } : null}
       />
     </div>

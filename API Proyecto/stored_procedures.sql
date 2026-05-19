@@ -75,16 +75,9 @@ BEGIN
         DELETE FROM Suscripcion     WHERE UsuarioID = @ID;
         DELETE FROM Categoria       WHERE UsuarioID = @ID;
 
-        -- Break FK_Usuario_MetodoDePago before deleting owned payment methods
+        -- Desasociar método de pago predeterminado antes de eliminarlos
         UPDATE Usuario SET MetodoDePagoID = NULL WHERE ID = @ID;
-
-        DELETE FROM MetodoDePago    WHERE UsuarioID = @ID;
-
-        DELETE FROM MetodoDePago
-            WHERE ID NOT IN (
-                SELECT DISTINCT MetodoDePagoID
-                FROM Usuario WHERE MetodoDePagoID IS NOT NULL
-            );
+        DELETE FROM MetodoDePago WHERE UsuarioID = @ID;
 
         DELETE FROM Correo  WHERE UsuarioID = @ID;
         DELETE FROM Usuario WHERE ID = @ID;
@@ -178,7 +171,7 @@ GO
 
 CREATE OR ALTER PROCEDURE spCrearSuscripcion
     @UsuarioID          INT,
-    @MetodoDePagoID     INT,
+    @MetodoDePagoID     INT           = NULL,
     @cicloFacturacionID INT,
     @EstadoID           INT,
     @CategoriaID        INT           = NULL,
@@ -193,10 +186,10 @@ BEGIN
     SET NOCOUNT ON;
     BEGIN TRANSACTION;
     BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM Usuario WHERE ID = @UsuarioID)
-            RAISERROR('Usuario no encontrado.', 16, 1);
-        IF NOT EXISTS (SELECT 1 FROM MetodoDePago WHERE ID = @MetodoDePagoID)
-            RAISERROR('Método de pago no encontrado.', 16, 1);
+        IF NOT EXISTS (SELECT 1 FROM Usuario          WHERE ID = @UsuarioID)
+            RAISERROR('Usuario no encontrado.',              16, 1);
+        IF @MetodoDePagoID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM MetodoDePago WHERE ID = @MetodoDePagoID)
+            RAISERROR('Método de pago no encontrado.',       16, 1);
         IF NOT EXISTS (SELECT 1 FROM cicloFacturacion WHERE ID = @cicloFacturacionID)
             RAISERROR('Ciclo de facturación no encontrado.', 16, 1);
         IF NOT EXISTS (SELECT 1 FROM Estado WHERE ID = @EstadoID)
@@ -374,7 +367,7 @@ GO
 -- ============================================================
 
 CREATE OR ALTER PROCEDURE spCrearMetodoPago
-    @UsuarioID INT           = NULL,
+    @UsuarioID INT,
     @TipoID   INT,
     @Alias    NVARCHAR(40),
     @Detalles NVARCHAR(500) = NULL
@@ -392,28 +385,30 @@ END;
 GO
 
 CREATE OR ALTER PROCEDURE spEliminarMetodoPago
-    @ID INT
+    @ID        INT,
+    @UsuarioID INT
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF NOT EXISTS (SELECT 1 FROM MetodoDePago WHERE ID = @ID)
-    BEGIN
-        RAISERROR('Método de pago no encontrado.', 16, 1);
-        RETURN;
-    END
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM MetodoDePago WHERE ID = @ID AND UsuarioID = @UsuarioID)
+        BEGIN
+            RAISERROR('Método de pago no encontrado.', 16, 1);
+            RETURN;
+        END
 
-    IF EXISTS (
-        SELECT 1 FROM Suscripcion WHERE MetodoDePagoID = @ID
-    )
-    BEGIN
-        RAISERROR('No se puede eliminar: el método de pago está asociado a suscripciones.', 16, 1);
-        RETURN;
-    END
+        -- Desasociar suscripciones antes de eliminar el método de pago
+        UPDATE Suscripcion SET MetodoDePagoID = NULL WHERE MetodoDePagoID = @ID;
 
-    -- If this method is default for users, clear it before deletion
-    UPDATE Usuario SET MetodoDePagoID = NULL WHERE MetodoDePagoID = @ID;
+        DELETE FROM MetodoDePago WHERE ID = @ID AND UsuarioID = @UsuarioID;
 
-    DELETE FROM MetodoDePago WHERE ID = @ID;
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
 END;
 GO
 

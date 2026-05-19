@@ -1,8 +1,9 @@
 import { User, Bell, Shield, Moon, Sun, Globe, Check, AlertCircle } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
+import { useThemeColors } from "../hooks/useThemeColors";
 import { useState, useEffect } from "react";
+import { getSubscriptions, updateUser, deleteUser, login } from "../lib/api";
 import { useNavigate } from "react-router";
-import { getSubscriptions, updateUser, deleteUser } from "../lib/api";
 import { NOTIF_PREFS_KEY } from "./NotificationsModal";
 import { useThemeColors } from "../hooks/useThemeColors";
 
@@ -35,6 +36,7 @@ function savePrefs(prefs: NotifPrefs) {
 export function AccountSettings() {
   const { theme, toggleTheme, currency, setCurrency } = useTheme();
   const colors = useThemeColors();
+  const navigate = useNavigate();
 
   const borderColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
   const inputStyle = {
@@ -65,52 +67,75 @@ export function AccountSettings() {
     setTimeout(() => setProfileMsg(null), 4000);
   };
 
-  const navigate = useNavigate();
+  // ── Password change ───────────────────────────────────────────────────
+  const [currentPass, setCurrentPass] = useState('');
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [passwordMsg, setPasswordMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
-  const handleDeleteAccount = async () => {
-    const ok = window.confirm('¿Estás seguro? Esta acción eliminará tu cuenta y todos tus datos asociados.');
-    if (!ok) return;
-    try {
-      await deleteUser(storedUser.id);
-      // Clear local storage and redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      navigate('/login');
-    } catch (err) {
-      alert('Error al eliminar la cuenta: ' + (err as Error).message);
+  const handlePasswordChange = async () => {
+    if (!currentPass || !newPass || !confirmPass) {
+      setPasswordMsg({ text: 'Completa todos los campos', ok: false });
+      setTimeout(() => setPasswordMsg(null), 4000);
+      return;
     }
+    if (newPass !== confirmPass) {
+      setPasswordMsg({ text: 'Las contraseñas nuevas no coinciden', ok: false });
+      setTimeout(() => setPasswordMsg(null), 4000);
+      return;
+    }
+    if (newPass.length < 6) {
+      setPasswordMsg({ text: 'La contraseña debe tener al menos 6 caracteres', ok: false });
+      setTimeout(() => setPasswordMsg(null), 4000);
+      return;
+    }
+    try {
+      // Verify current password against the server before changing it
+      await login(storedUser.correo, currentPass);
+    } catch {
+      setPasswordMsg({ text: 'La contraseña actual es incorrecta', ok: false });
+      setTimeout(() => setPasswordMsg(null), 4000);
+      return;
+    }
+    try {
+      await updateUser(storedUser.id, { contrasena: newPass });
+      setCurrentPass('');
+      setNewPass('');
+      setConfirmPass('');
+      setPasswordMsg({ text: 'Contraseña actualizada correctamente', ok: true });
+    } catch (err) {
+      setPasswordMsg({ text: 'Error al actualizar: ' + (err as Error).message, ok: false });
+    }
+    setTimeout(() => setPasswordMsg(null), 4000);
   };
 
-  const handleUpdatePassword = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      setPasswordMsg({ text: 'Completa todos los campos de contraseña.', ok: false });
-      setTimeout(() => setPasswordMsg(null), 4000);
+  // ── Delete account ────────────────────────────────────────────────────
+  const [deleteConfirmPass, setDeleteConfirmPass] = useState('');
+  const [deleteConfirming, setDeleteConfirming] = useState(false);
+  const [deleteMsg, setDeleteMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (!deleteConfirmPass) {
+      setDeleteMsg({ text: 'Ingresa tu contraseña para confirmar', ok: false });
       return;
     }
-
-    if (newPassword.length < 8) {
-      setPasswordMsg({ text: 'La nueva contraseña debe tener al menos 8 caracteres.', ok: false });
-      setTimeout(() => setPasswordMsg(null), 4000);
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setPasswordMsg({ text: 'La confirmación no coincide con la nueva contraseña.', ok: false });
-      setTimeout(() => setPasswordMsg(null), 4000);
-      return;
-    }
-
+    setDeleteLoading(true);
     try {
-      await updateUser(storedUser.id, { contrasena: newPassword });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setPasswordMsg({ text: 'Contraseña actualizada correctamente.', ok: true });
-    } catch (err) {
-      setPasswordMsg({ text: 'Error al actualizar contraseña: ' + (err as Error).message, ok: false });
+      await login(storedUser.correo, deleteConfirmPass);
+    } catch {
+      setDeleteMsg({ text: 'Contraseña incorrecta', ok: false });
+      setDeleteLoading(false);
+      return;
     }
-
-    setTimeout(() => setPasswordMsg(null), 4000);
+    try {
+      await deleteUser(storedUser.id);
+      localStorage.clear();
+      navigate('/login');
+    } catch (err) {
+      setDeleteMsg({ text: 'Error al eliminar: ' + (err as Error).message, ok: false });
+      setDeleteLoading(false);
+    }
   };
 
   // ── Notification prefs ────────────────────────────────────────────────
@@ -191,12 +216,12 @@ export function AccountSettings() {
               onClick={handleSaveProfile}
               aria-label="Guardar cambios"
               className="px-6 py-2.5 rounded-lg transition-all hover:opacity-90"
-              style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
+              style={{ backgroundColor: 'var(--color-primary-action)', color: colors.primaryForeground }}
             >
               Guardar Cambios
             </button>
             {profileMsg && (
-              <span className="flex items-center gap-1 text-sm" style={{ color: profileMsg.ok ? '#52b788' : '#E61445' }}>
+              <span className="flex items-center gap-1 text-sm" style={{ color: profileMsg.ok ? colors.success : '#E61445' }}>
                 {profileMsg.ok ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                 {profileMsg.text}
               </span>
@@ -282,6 +307,8 @@ export function AccountSettings() {
               value={currentPassword}
               onChange={e => setCurrentPassword(e.target.value)}
               placeholder="••••••••"
+              value={currentPass}
+              onChange={e => setCurrentPass(e.target.value)}
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border"
               style={inputStyle}
             />
@@ -294,6 +321,8 @@ export function AccountSettings() {
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
               placeholder="••••••••"
+              value={newPass}
+              onChange={e => setNewPass(e.target.value)}
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border"
               style={inputStyle}
             />
@@ -306,6 +335,8 @@ export function AccountSettings() {
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
+              value={confirmPass}
+              onChange={e => setConfirmPass(e.target.value)}
               className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border"
               style={inputStyle}
             />
@@ -313,15 +344,15 @@ export function AccountSettings() {
           <div className="pt-2 flex items-center gap-3">
             <button
               type="button"
-              onClick={handleUpdatePassword}
+              onClick={handlePasswordChange}
               aria-label="Actualizar contraseña"
               className="px-6 py-2.5 rounded-lg transition-all hover:opacity-90"
-              style={{ backgroundColor: 'var(--color-primary-action)', color: theme === 'dark' ? '#e8e8e8' : '#ffffff' }}
+              style={{ backgroundColor: 'var(--color-primary-action)', color: colors.primaryForeground }}
             >
               Actualizar Contraseña
             </button>
             {passwordMsg && (
-              <span className="flex items-center gap-1 text-sm" style={{ color: passwordMsg.ok ? '#52b788' : '#E61445' }}>
+              <span className="flex items-center gap-1 text-sm" style={{ color: passwordMsg.ok ? colors.success : '#E61445' }}>
                 {passwordMsg.ok ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                 {passwordMsg.text}
               </span>
@@ -343,8 +374,8 @@ export function AccountSettings() {
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
               aria-label="Moneda predeterminada"
-              className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border bg-surface"
-              style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
+              className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border"
+              style={{ ...inputStyle, colorScheme: theme === 'dark' ? 'dark' : 'light' }}
             >
               <option value="USD">USD - Dólar Estadounidense</option>
               <option value="EUR">EUR - Euro</option>
@@ -368,7 +399,7 @@ export function AccountSettings() {
               style={{ backgroundColor: 'var(--color-primary-action)' }}
             >
               {theme === 'dark' ? (
-                <Moon className="w-5 h-5" style={{ color: '#e8e8e8' }} aria-hidden="true" />
+                <Moon className="w-5 h-5" style={{ color: colors.primaryForeground }} aria-hidden="true" />
               ) : (
                 <Sun className="w-5 h-5" style={{ color: '#ffffff' }} aria-hidden="true" />
               )}
@@ -382,23 +413,70 @@ export function AccountSettings() {
         className="p-6 rounded-lg border lg:col-span-2 bg-card"
         style={{ borderColor: theme === 'dark' ? '#FF7A7A' : '#dc2626' }}
       >
-        <h3 className="text-lg mb-4" style={{ color: theme === 'dark' ? '#FF7A7A' : '#dc2626' }}>Zona de Peligro</h3>
+        <h3 className="text-lg mb-2" style={{ color: theme === 'dark' ? '#FF7A7A' : '#dc2626' }}>Zona de Peligro</h3>
         <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
           Las siguientes acciones son permanentes y no se pueden deshacer.
         </p>
-        <button
-          type="button"
-          onClick={handleDeleteAccount}
-          aria-label="Eliminar cuenta permanentemente"
-          className="px-6 py-2.5 rounded-lg border transition-all hover:opacity-90"
-          style={{
-            borderColor: theme === 'dark' ? '#FF7A7A' : '#dc2626',
-            color: theme === 'dark' ? '#FF7A7A' : '#dc2626',
-            backgroundColor: 'transparent',
-          }}
-        >
-          Eliminar Cuenta Permanentemente
-        </button>
+
+        {!deleteConfirming ? (
+          <button
+            type="button"
+            aria-label="Eliminar cuenta permanentemente"
+            onClick={() => setDeleteConfirming(true)}
+            className="px-6 py-2.5 rounded-lg border transition-all hover:opacity-90"
+            style={{
+              borderColor: theme === 'dark' ? '#FF7A7A' : '#dc2626',
+              color: theme === 'dark' ? '#FF7A7A' : '#dc2626',
+              backgroundColor: 'transparent',
+            }}
+          >
+            Eliminar Cuenta Permanentemente
+          </button>
+        ) : (
+          <div className="space-y-3 max-w-sm">
+            <p className="text-sm font-medium" style={{ color: theme === 'dark' ? '#FF7A7A' : '#dc2626' }}>
+              Ingresa tu contraseña para confirmar la eliminación:
+            </p>
+            <input
+              type="password"
+              aria-label="Contraseña para confirmar eliminación"
+              placeholder="••••••••"
+              value={deleteConfirmPass}
+              onChange={e => { setDeleteConfirmPass(e.target.value); setDeleteMsg(null); }}
+              className="w-full px-4 py-3 rounded-lg outline-none text-foreground border"
+              style={inputStyle}
+            />
+            {deleteMsg && (
+              <p className="text-sm flex items-center gap-1" style={{ color: '#E61445' }}>
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {deleteMsg.text}
+              </p>
+            )}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading}
+                className="px-5 py-2 rounded-lg border transition-all hover:opacity-90 disabled:opacity-60"
+                style={{
+                  borderColor: theme === 'dark' ? '#FF7A7A' : '#dc2626',
+                  color: theme === 'dark' ? '#FF7A7A' : '#dc2626',
+                  backgroundColor: 'transparent',
+                }}
+              >
+                {deleteLoading ? 'Eliminando...' : 'Confirmar eliminación'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setDeleteConfirming(false); setDeleteConfirmPass(''); setDeleteMsg(null); }}
+                className="px-5 py-2 rounded-lg transition-all hover:opacity-80"
+                style={{ backgroundColor: 'rgba(128,128,128,0.15)', color: 'var(--text-secondary)' }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
