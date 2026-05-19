@@ -5,9 +5,6 @@ import { useState, useEffect } from "react";
 import { getSubscriptions, updateUser, deleteUser, login } from "../lib/api";
 import { useNavigate } from "react-router";
 import { NOTIF_PREFS_KEY } from "./NotificationsModal";
-import { useThemeColors } from "../hooks/useThemeColors";
-
-
 
 interface NotifPrefs {
   upcomingEnabled: boolean;
@@ -44,17 +41,13 @@ export function AccountSettings() {
     backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
   };
 
-  // ── Profile ──────────────────────────────────────────────────────────
   const storedUser = (() => {
     try { return JSON.parse(localStorage.getItem('user') ?? '{}'); } catch { return {}; }
   })();
 
+  // ── Profile ──────────────────────────────────────────────────────────
   const [nombre, setNombre] = useState<string>(storedUser.nombre || '');
   const [profileMsg, setProfileMsg] = useState<{ text: string; ok: boolean } | null>(null);
-  const [currentPassword, setCurrentPassword] = useState<string>('');
-  const [newPassword, setNewPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [passwordMsg, setPasswordMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   const handleSaveProfile = async () => {
     try {
@@ -90,7 +83,6 @@ export function AccountSettings() {
       return;
     }
     try {
-      // Verify current password against the server before changing it
       await login(storedUser.correo, currentPass);
     } catch {
       setPasswordMsg({ text: 'La contraseña actual es incorrecta', ok: false });
@@ -145,10 +137,7 @@ export function AccountSettings() {
 
   useEffect(() => {
     setIsLoadingSubscriptions(true);
-    // Avoid hanging forever if the request never resolves (server down/CORS).
-    const timeoutMs = 5000;
-    const timeoutPromise = new Promise<any>(resolve => setTimeout(() => resolve({ suscripciones: [] }), timeoutMs));
-
+    const timeoutPromise = new Promise<any>(resolve => setTimeout(() => resolve({ suscripciones: [] }), 5000));
     Promise.race([getSubscriptions(), timeoutPromise])
       .then((data: any) => setSubscriptions(
         (data?.suscripciones ?? []).map((s: any) => ({ id: s.id, name: s.name }))
@@ -167,7 +156,6 @@ export function AccountSettings() {
     if (enabled) {
       updatePrefs({ allSubsEnabled: true, allowedSubIds: [] });
     } else {
-      // Pre-select all subscriptions so user can deselect specific ones
       updatePrefs({ allSubsEnabled: false, allowedSubIds: subscriptions.map(s => s.id) });
     }
   };
@@ -237,8 +225,6 @@ export function AccountSettings() {
           Preferencias de Notificaciones
         </h3>
         <div className="space-y-4">
-
-          {/* Type toggles */}
           <Toggle
             label="Alertas de Próximos Pagos"
             description="Notificaciones de renovaciones próximas"
@@ -246,8 +232,6 @@ export function AccountSettings() {
             onChange={v => updatePrefs({ upcomingEnabled: v })}
             primaryColor="var(--color-primary-action)"
           />
-
-          {/* Per-subscription filter */}
           <div className="border-t pt-4" style={{ borderColor }}>
             <p className="text-sm font-medium text-foreground mb-3">Suscripciones</p>
             <Toggle
@@ -257,7 +241,6 @@ export function AccountSettings() {
               onChange={handleAllSubsToggle}
               primaryColor="var(--color-primary-action)"
             />
-
             {!prefs.allSubsEnabled && (
               <div className="mt-3 space-y-2 pl-2">
                 {isLoadingSubscriptions ? (
@@ -304,8 +287,6 @@ export function AccountSettings() {
             <input
               type="password"
               aria-label="Contraseña Actual"
-              value={currentPassword}
-              onChange={e => setCurrentPassword(e.target.value)}
               placeholder="••••••••"
               value={currentPass}
               onChange={e => setCurrentPass(e.target.value)}
@@ -318,8 +299,6 @@ export function AccountSettings() {
             <input
               type="password"
               aria-label="Nueva Contraseña"
-              value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
               placeholder="••••••••"
               value={newPass}
               onChange={e => setNewPass(e.target.value)}
@@ -332,8 +311,6 @@ export function AccountSettings() {
             <input
               type="password"
               aria-label="Confirmar Nueva Contraseña"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               value={confirmPass}
               onChange={e => setConfirmPass(e.target.value)}
@@ -401,7 +378,7 @@ export function AccountSettings() {
               {theme === 'dark' ? (
                 <Moon className="w-5 h-5" style={{ color: colors.primaryForeground }} aria-hidden="true" />
               ) : (
-                <Sun className="w-5 h-5" style={{ color: '#ffffff' }} aria-hidden="true" />
+                <Sun className="w-5 h-5" style={{ color: colors.primaryForeground }} aria-hidden="true" />
               )}
             </button>
           </div>
@@ -482,7 +459,6 @@ export function AccountSettings() {
   );
 }
 
-// ── Small reusable toggle ──────────────────────────────────────────────────────
 function Toggle({
   label, description, checked, onChange, primaryColor,
 }: {
