@@ -1,6 +1,8 @@
 import { Calendar, DollarSign, TrendingDown, TrendingUp, Plus, Trash2, Edit } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { useState, useEffect } from "react";
+import { useStaggerIn } from "../lib/motion";
+
 import { PaymentHistoryForm } from "./PaymentHistoryForm";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { getPaymentHistory, getDashboardExpenses, getPaymentFormData, registerPayment, updatePayment, deletePayment } from "../lib/api";
@@ -141,10 +143,12 @@ export function FinancialHistory() {
     color: ['#646cff', colors.success, '#ffd166', '#E61445', '#118ab2'][i % 5],
   }));
 
+  const containerRef = useStaggerIn<HTMLDivElement>(".stagger-item, .history-row", [paymentHistory.length], { stagger: 0.05 });
+
   return (
-    <div className="space-y-6">
+    <div ref={containerRef} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Total Gastado</p>
@@ -157,7 +161,7 @@ export function FinancialHistory() {
           </div>
         </div>
 
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Mes Actual</p>
@@ -175,7 +179,7 @@ export function FinancialHistory() {
           </div>
         </div>
 
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Promedio Mensual</p>
@@ -192,7 +196,7 @@ export function FinancialHistory() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <h3 className="text-lg text-foreground mb-6">Tendencia de Gastos Mensuales</h3>
           {monthlyTrend.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -214,7 +218,7 @@ export function FinancialHistory() {
           )}
         </div>
 
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <h3 className="text-lg text-foreground mb-6">Gastos por Suscripción</h3>
           {categoryBreakdown.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -272,7 +276,7 @@ export function FinancialHistory() {
             </thead>
             <tbody>
               {paymentHistory.map((payment) => (
-                <tr key={payment.id} style={{ borderBottom: `1px solid ${colors.border}` }} className="hover:bg-primary/20 transition-colors">
+                <tr key={payment.id} style={{ borderBottom: `1px solid ${colors.border}` }} className="history-row hover:bg-primary/20 transition-colors">
                   <td className="px-6 py-4 text-secondary">
                     {new Date(payment.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </td>

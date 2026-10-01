@@ -1,6 +1,7 @@
 import { Plus, Edit, Trash2, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { useStaggerIn } from "../lib/motion";
 import { SubscriptionForm } from "./SubscriptionForm";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { useTheme } from "../contexts/ThemeContext";
@@ -161,6 +162,8 @@ export function Subscriptions() {
 
   const categoryOptions = ["Todas", ...(catalog?.categorias.map(c => c.name) ?? [])];
 
+  const containerRef = useStaggerIn<HTMLDivElement>(".sub-row", [subscriptions.length, selectedCategory], { y: 12, stagger: 0.04, duration: 0.45 });
+
   const filteredSubscriptions = subscriptions.filter(sub => {
     const matchesSearch = (sub.name ?? '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "Todas" || sub.category === selectedCategory;
@@ -171,7 +174,7 @@ export function Subscriptions() {
     sub.categoryColor || catalog?.categorias.find(c => c.name === sub.category)?.color || '#6b7d5c';
 
   return (
-    <div className="space-y-6">
+    <div ref={containerRef} className="space-y-6">
       <div className="flex flex-col md:flex-row gap-4 justify-between">
         <div className="flex gap-4 flex-1">
           <div
@@ -204,7 +207,7 @@ export function Subscriptions() {
           type="button"
           onClick={handleAddNew}
           aria-labelledby="new-subscription-label"
-          className="px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all hover:opacity-90 whitespace-nowrap"
+          className="press px-6 py-2.5 rounded-lg flex items-center gap-2 hover:opacity-90 whitespace-nowrap"
           style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
         >
           <Plus className="w-5 h-5" aria-hidden="true" />
@@ -235,7 +238,7 @@ export function Subscriptions() {
                 <tr
                   key={sub.id}
                   style={{ borderBottom: `1px solid ${colors.border}` }}
-                  className="hover:bg-primary/20 transition-colors"
+                  className="sub-row hover:bg-primary/20 transition-colors"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -278,7 +281,7 @@ export function Subscriptions() {
                         type="button"
                         onClick={() => handleEdit(sub)}
                         aria-label={`Editar ${sub.name}`}
-                        className="p-2 rounded-lg hover:opacity-80 transition-all"
+                        className="press p-2 rounded-lg hover:opacity-80"
                         style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}
                       >
                         <Edit className="w-4 h-4" />
@@ -287,7 +290,7 @@ export function Subscriptions() {
                         type="button"
                         onClick={() => handleDelete(sub.id)}
                         aria-label={`Eliminar ${sub.name}`}
-                        className="p-2 rounded-lg hover:opacity-80 transition-all"
+                        className="press p-2 rounded-lg hover:opacity-80"
                         style={{ backgroundColor: colors.destructive, color: '#ffffff' }}
                       >
                         <Trash2 className="w-4 h-4" />

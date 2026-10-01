@@ -15,7 +15,7 @@ export function AccountModal({ isOpen, onClose, onNavigate, onLogout, user }: Ac
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end p-4" onClick={onClose}>
+    <div className="popover-overlay fixed inset-0 z-50 flex items-start justify-end p-4" onClick={onClose}>
       <div
         id="account-modal"
         role="dialog"

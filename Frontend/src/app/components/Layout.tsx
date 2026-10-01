@@ -1,6 +1,8 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import { Home, CreditCard, Clock, Lock, Settings, Bell, Plus, User, FolderOpen, Wallet, LogOut } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { NotificationsModal } from "./NotificationsModal";
 import { AccountModal } from "./AccountModal";
 import { SubscriptionForm } from "./SubscriptionForm";
@@ -72,6 +74,29 @@ export function Layout() {
     }
   };
 
+  const mainRef = useRef<HTMLElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  // Entrada del menú lateral (una vez) y transición suave entre páginas
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.from(".nav-item", {
+        autoAlpha: 0, x: -20, duration: 0.5, ease: "power3.out", stagger: 0.06,
+        clearProps: "transform,opacity,visibility",
+      });
+    });
+  }, { scope: navRef });
+
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.fromTo(mainRef.current,
+        { autoAlpha: 0, y: 14 },
+        { autoAlpha: 1, y: 0, duration: 0.45, ease: "power2.out", clearProps: "transform,opacity,visibility" });
+    });
+  }, { dependencies: [location.pathname] });
+
   const navItems = [
     { path: "/", label: "Inicio / Dashboard", icon: Home },
     { path: "/suscripciones", label: "Mis Suscripciones", icon: CreditCard },
@@ -95,7 +120,7 @@ export function Layout() {
           <h2 className="text-xl text-foreground mb-8">
             Sistema Gestor de Suscripciones
           </h2>
-          <nav className="space-y-2">
+          <nav ref={navRef} className="space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -103,7 +128,7 @@ export function Layout() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
+                  className="nav-link nav-item flex items-center gap-3 px-4 py-3 rounded-lg"
                   style={{
                     backgroundColor: isActive ? 'var(--color-primary-action)' : 'transparent',
                     color: isActive ? ('#ffffff') : 'var(--text-secondary)',
@@ -155,7 +180,7 @@ export function Layout() {
                 }).catch(() => {});
                 setShowSubscriptionForm(true);
               }}
-              className="px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all hover:opacity-90"
+              className="press px-6 py-2.5 rounded-lg flex items-center gap-2 hover:opacity-90"
               style={{ backgroundColor: 'var(--color-primary-action)', color: '#ffffff' }}
             >
               <Plus className="w-5 h-5" />
@@ -168,7 +193,7 @@ export function Layout() {
               aria-haspopup="dialog"
               aria-expanded={showNotifications}
               aria-controls="notifications-modal"
-              className="p-2 rounded-lg relative transition-all hover:opacity-80"
+              className="press p-2 rounded-lg relative hover:opacity-80"
               style={{ backgroundColor: 'var(--color-primary-action)', color: '#ffffff' }}
             >
               <Bell className="w-5 h-5" />
@@ -188,7 +213,7 @@ export function Layout() {
               aria-haspopup="dialog"
               aria-expanded={showAccountModal}
               aria-controls="account-modal"
-              className="p-2 rounded-lg transition-all hover:opacity-80"
+              className="press p-2 rounded-lg hover:opacity-80"
               style={{ backgroundColor: 'var(--color-primary-action)', color: '#ffffff' }}
               onClick={() => setShowAccountModal(true)}
             >
@@ -198,7 +223,7 @@ export function Layout() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-8">
+        <main ref={mainRef} className="flex-1 overflow-y-auto p-8">
           <Outlet />
         </main>
       </div>

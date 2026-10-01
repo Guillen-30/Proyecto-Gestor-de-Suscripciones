@@ -155,7 +155,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end p-4" onClick={onClose}>
+    <div className="popover-overlay fixed inset-0 z-50 flex items-start justify-end p-4" onClick={onClose}>
       <div
         id="notifications-modal"
         role="dialog"

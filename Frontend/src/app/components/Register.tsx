@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { Mail, Lock, Eye, EyeOff, User, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useThemeColors } from "../hooks/useThemeColors";
@@ -37,13 +39,24 @@ export function Register() {
     }
   };
 
+  const rootRef = useRef<HTMLDivElement>(null);
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.timeline({ defaults: { ease: "power3.out" } })
+        .from(".auth-card", { autoAlpha: 0, y: 30, scale: 0.97, duration: 0.6 })
+        .from(".auth-card h1, .auth-card form > *", { autoAlpha: 0, y: 12, duration: 0.4, stagger: 0.06, clearProps: "transform,opacity,visibility" }, "-=0.3");
+    });
+  }, { scope: rootRef });
+
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4"
+    <div
+      ref={rootRef}
+      className="auth-bg min-h-screen flex items-center justify-center p-4"
       style={{ backgroundColor: colors.bgBase, borderColor: colors.border }}
     >
       <div 
-        className="w-full max-w-md p-8 rounded-lg border"
+        className="auth-card w-full max-w-md p-8 rounded-lg border"
         style={{ 
           backgroundColor: colors.bgSurface,
           borderColor: colors.border
