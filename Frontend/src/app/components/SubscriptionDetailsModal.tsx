@@ -39,9 +39,9 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Activa":
-        return colors.success;
+        return "#178740";
       case "Pausada":
-        return "#ffd166";
+        return "#996B00";
       case "Cancelada":
         return "#E61445";
       default:
@@ -105,7 +105,7 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
               <span 
                 className="inline-block px-3 py-1 rounded-full text-sm mt-1"
                 style={{ 
-                  backgroundColor: getStatusColor(subscription.status) + '20', // Adding transparency
+                  backgroundColor: getStatusColor(subscription.status), 
                   color: '#ffffff'
                 }}
               >
@@ -134,16 +134,16 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
               borderColor: colors.border
             }}
           >
-            <p className="text-sm mb-2" style={{ color: colors.primaryForeground, opacity: 0.8 }}>Costo de Suscripción</p>
+            <p className="text-sm mb-2" style={{ color: "#FFFFFF" }}>Costo de Suscripción</p>
             <div className="flex items-baseline justify-center gap-2">
-              <span className="text-4xl" style={{ color: colors.primaryForeground }}>
+              <span className="text-4xl" style={{ color: "#FFFFFF" }}>
                 ${subscription.cost.toFixed(2)}
               </span>
-              <span className="text-xl" style={{ color: colors.primaryForeground, opacity: 0.8 }}>
+              <span className="text-xl" style={{ color: "#FFFFFF" }}>
                 {subscription.currency || "USD"}
               </span>
             </div>
-            <p className="text-sm mt-2" style={{ color: colors.primaryForeground, opacity: 0.7 }}>
+            <p className="text-sm mt-2" style={{ color: "#FFFFFF" }}>
               {getCycleLabel(subscription.billingCycle)}
             </p>
           </div>
@@ -244,7 +244,7 @@ export function SubscriptionDetailsModal({ isOpen, onClose, subscription }: Subs
             <button
               onClick={onClose}
               className="flex-1 px-6 py-3 rounded-lg border transition-all hover:opacity-80"
-              style={{ borderColor: colors.border, color: '#b4b4b4' }}
+              style={{ borderColor: colors.border, color: colors.textSecondary }}
             >
               Cerrar
             </button>

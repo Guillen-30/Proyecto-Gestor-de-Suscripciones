@@ -1,4 +1,4 @@
-import { X, Bell, Calendar, CreditCard, Trash2 } from "lucide-react";
+import { X, Bell, Calendar, CreditCard, Trash2, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { useTheme } from "../contexts/ThemeContext";
@@ -250,8 +250,8 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                     </div>
                     <p className="text-sm text-secondary mt-1">{notification.message}</p>
                     <p className="text-xs text-muted-foreground mt-1">{notification.date}</p>
-                    <p className="text-xs mt-1" style={{ color: isRead ? colors.textSecondary : colors.primaryAction }}>
-                      {isRead ? 'Leída — clic para marcar como no leída' : 'No leída — clic para marcar como leída'}
+                    <p className="text-xs mt-1" style={{ color: isRead ? colors.textPrimary :  colors.primaryAction }}>
+                      {isRead ? 'Leída - clic para marcar como no leída' : 'No leída — clic para marcar como leída'}
                     </p>
                   </div>
                 </div>

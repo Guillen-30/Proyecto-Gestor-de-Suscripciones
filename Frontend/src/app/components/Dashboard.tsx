@@ -210,7 +210,7 @@ export function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {subscriptions.map((sub: any) => (
-              <div
+              <button
                 key={sub.id}
                 className="stagger-item lift p-6 rounded-lg border cursor-pointer"
                 style={{ backgroundColor: colors.bgSurface, borderColor: 'rgba(255, 255, 255, 0.1)' }}
@@ -219,9 +219,9 @@ export function Dashboard() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
                     {sub.imageUrl ? (
-                      <img src={sub.imageUrl} alt={sub.imageAlt || sub.name} className="w-full h-full object-cover" />
+                      <img src={sub.imageUrl} alt="" aria-hidden="true" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-white text-xl">{sub.name?.charAt(0)}</span>
+                      <span aria-hidden="true" className="text-white text-xl">{sub.name?.charAt(0)}</span>
                     )}
                   </div>
                   <span className="px-3 py-1 rounded-full text-xs" style={{ backgroundColor: colors.primaryAction, color: colors.primaryForeground }}>
@@ -238,7 +238,7 @@ export function Dashboard() {
                     {new Date(sub.billingDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                   </p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
