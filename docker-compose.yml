@@ -20,19 +20,20 @@ services:
     networks:
       - suscripciones-network
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 382005ALH! -Q 'SELECT 1' || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 382005ALH! -C -Q 'SELECT 1' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     command: /bin/bash -c 'chmod +x /var/opt/mssql/scripts/*.sql && /opt/mssql/bin/sqlservr'
     # Ejecutar script de inicialización después de que SQL Server esté listo
     entrypoint: sh -c "
       /opt/mssql/bin/sqlservr &
       PID=$$!
-      sleep 15;
+      sleep 30;
       echo 'Ejecutando scripts SQL...';
-      /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 382005ALH! -d master -i /var/opt/mssql/scripts/creacion_BD.sql;
-      /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 382005ALH! -d SuscripcionesDB -i /var/opt/mssql/scripts/stored_procedures.sql;
+      /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 382005ALH! -C -d master -i /var/opt/mssql/scripts/creacion_BD.sql;
+      /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 382005ALH! -C -d SuscripcionesDB -i /var/opt/mssql/scripts/stored_procedures.sql;
       echo 'Scripts ejecutados!';
       wait $$PID
       "

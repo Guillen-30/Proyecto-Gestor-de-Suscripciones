@@ -2,6 +2,8 @@ import { User, Bell, Shield, Moon, Sun, Globe, Check, AlertCircle } from "lucide
 import { useTheme } from "../contexts/ThemeContext";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { useState, useEffect } from "react";
+import { useStaggerIn } from "../lib/motion";
+
 import { getSubscriptions, updateUser, deleteUser, login } from "../lib/api";
 import { useNavigate } from "react-router";
 import { NOTIF_PREFS_KEY } from "./NotificationsModal";
@@ -166,11 +168,13 @@ export function AccountSettings() {
     updatePrefs({ allowedSubIds: next });
   };
 
+  const containerRef = useStaggerIn<HTMLDivElement>(".stagger-item", []);
+
   return (
-    <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-min">
+    <div ref={containerRef} className="h-full grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-min">
 
       {/* ── Profile ── */}
-      <div className="p-6 rounded-lg border bg-card" style={{ borderColor }}>
+      <div className="stagger-item p-6 rounded-lg border bg-card" style={{ borderColor }}>
         <h3 className="text-lg text-foreground mb-6 flex items-center gap-2">
           <User className="w-5 h-5" aria-hidden="true" />
           Información de Perfil
@@ -219,7 +223,7 @@ export function AccountSettings() {
       </div>
 
       {/* ── Notification Prefs ── */}
-      <div className="p-6 rounded-lg border bg-card" style={{ borderColor }}>
+      <div className="stagger-item p-6 rounded-lg border bg-card" style={{ borderColor }}>
         <h3 className="text-lg text-foreground mb-6 flex items-center gap-2">
           <Bell className="w-5 h-5" aria-hidden="true" />
           Preferencias de Notificaciones
@@ -276,7 +280,7 @@ export function AccountSettings() {
       </div>
 
       {/* ── Security ── */}
-      <div className="p-6 rounded-lg border bg-card" style={{ borderColor }}>
+      <div className="stagger-item p-6 rounded-lg border bg-card" style={{ borderColor }}>
         <h3 className="text-lg text-foreground mb-6 flex items-center gap-2">
           <Shield className="w-5 h-5" aria-hidden="true" />
           Seguridad
@@ -339,7 +343,7 @@ export function AccountSettings() {
       </div>
 
       {/* ── General Preferences ── */}
-      <div className="p-6 rounded-lg border bg-card" style={{ borderColor }}>
+      <div className="stagger-item p-6 rounded-lg border bg-card" style={{ borderColor }}>
         <h3 className="text-lg text-foreground mb-6 flex items-center gap-2">
           <Globe className="w-5 h-5" aria-hidden="true" />
           Preferencias Generales
@@ -387,7 +391,7 @@ export function AccountSettings() {
 
       {/* ── Danger Zone ── */}
       <div
-        className="p-6 rounded-lg border lg:col-span-2 bg-card"
+        className="stagger-item p-6 rounded-lg border lg:col-span-2 bg-card"
         style={{ borderColor: theme === 'dark' ? '#FF7A7A' : '#dc2626' }}
       >
         <h3 className="text-lg mb-2" style={{ color: theme === 'dark' ? '#FF7A7A' : '#dc2626' }}>Zona de Peligro</h3>

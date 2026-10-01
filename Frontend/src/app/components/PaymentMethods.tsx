@@ -1,5 +1,7 @@
 import { Plus, Edit, Trash2, CreditCard, Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useStaggerIn } from "../lib/motion";
+
 import { PaymentMethodForm } from "./PaymentMethodForm";
 import { useThemeColors } from "../hooks/useThemeColors";
 import {
@@ -82,8 +84,10 @@ export function PaymentMethods() {
     setIsFormOpen(true);
   };
 
+  const containerRef = useStaggerIn<HTMLDivElement>(".stagger-item", [methods.length]);
+
   return (
-    <div className="space-y-6">
+    <div ref={containerRef} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-xl text-foreground">Métodos de Pago</h3>
@@ -105,7 +109,7 @@ export function PaymentMethods() {
         {methods.map((method) => (
           <div
             key={method.id}
-            className="p-6 rounded-lg border"
+            className="stagger-item lift p-6 rounded-lg border"
             style={{ backgroundColor: colors.bgSurface, borderColor: method.isDefault ? colors.primaryAction : colors.border }}
           >
             <div className="flex items-start justify-between mb-4">

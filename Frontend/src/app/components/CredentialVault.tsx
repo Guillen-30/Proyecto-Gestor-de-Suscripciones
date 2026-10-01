@@ -1,5 +1,7 @@
 import { Search, Eye, EyeOff, Copy, Edit, Trash2, Shield, Plus, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useStaggerIn } from "../lib/motion";
+
 import { CredentialForm } from "./CredentialForm";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { getCredentials, createCredential, updateCredential, deleteCredential } from "../lib/api";
@@ -102,8 +104,10 @@ export function CredentialVault() {
     (cred.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
+  const containerRef = useStaggerIn<HTMLDivElement>(".stagger-item", [credentials.length]);
+
   return (
-    <div className="space-y-6">
+    <div ref={containerRef} className="space-y-6">
       <div className="p-6 rounded-lg border flex items-start gap-4" style={{ backgroundColor: colors.primaryAction, borderColor: colors.border }}>
         <Shield className="w-6 h-6 flex-shrink-0 mt-1" style={{ color: colors.primaryForeground }} />
         <div>
@@ -143,7 +147,7 @@ export function CredentialVault() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredCredentials.map((cred) => (
-          <div key={cred.id} className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+          <div key={cred.id} className="stagger-item lift p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>

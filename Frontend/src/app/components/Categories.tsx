@@ -1,5 +1,7 @@
 import { Plus, Edit, Trash2, FolderOpen } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useStaggerIn } from "../lib/motion";
+
 import { useThemeColors } from "../hooks/useThemeColors";
 import { getCategories, createCategory, updateCategory, deleteCategory } from "../lib/api";
 
@@ -77,8 +79,10 @@ export function Categories() {
     setIsAdding(false);
   };
 
+  const containerRef = useStaggerIn<HTMLDivElement>(".stagger-item", [categories.length]);
+
   return (
-    <div className="space-y-6">
+    <div ref={containerRef} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-xl text-foreground">Gestión de Categorías</h3>
@@ -95,7 +99,7 @@ export function Categories() {
       </div>
 
       {isAdding && (
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="reveal p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <h4 className="text-lg text-foreground mb-4">Nueva Categoría</h4>
           <div className="flex flex-col md:flex-row gap-3 md:items-center">
             <input
@@ -141,7 +145,7 @@ export function Categories() {
         {categories.map((category) => (
           <div
             key={category.id}
-            className="p-6 rounded-lg border"
+            className="stagger-item lift p-6 rounded-lg border"
             style={{ backgroundColor: colors.bgSurface, borderColor: "rgba(255, 255, 255, 0.1)" }}
           >
             {editingId === category.id ? (

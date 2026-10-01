@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { SubscriptionDetailsModal } from "./SubscriptionDetailsModal";
 import { useThemeColors } from "../hooks/useThemeColors";
 import { useTheme } from "../contexts/ThemeContext";
+import { useStaggerIn, CountUp } from "../lib/motion";
 import { getDashboardSummary, getDashboardUpcoming, getDashboardExpenses } from "../lib/api";
 
 const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', CRC: '₡', MXN: '$MX ' };
@@ -43,6 +44,8 @@ export function Dashboard() {
     fetchData();
   }, []);
 
+  const containerRef = useStaggerIn<HTMLDivElement>(".stagger-item", [isLoading, currency]);
+
   const handleSubscriptionClick = (subscription: any) => {
     setSelectedSubscription({
       ...subscription,
@@ -66,8 +69,17 @@ export function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-secondary">Cargando dashboard...</p>
+      <div className="space-y-6" aria-busy="true" aria-label="Cargando dashboard">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[0, 1, 2, 3].map(i => <div key={i} className="skeleton h-[104px]" />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="skeleton lg:col-span-2 h-[372px]" />
+          <div className="skeleton h-[372px]" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[0, 1, 2].map(i => <div key={i} className="skeleton h-[180px]" />)}
+        </div>
       </div>
     );
   }
@@ -77,14 +89,14 @@ export function Dashboard() {
   const convertedChartData = (chartData ?? []).map(d => ({ ...d, amount: parseFloat(((d.amount ?? 0) * rate).toFixed(2)) }));
 
   return (
-    <div className="space-y-6">
+    <div ref={containerRef} className="space-y-6">
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item lift p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Gasto Mensual Total</p>
-              <h3 className="text-3xl text-foreground">{sym}{toDisplay(summary?.gastoMensualTotal ?? 0)}</h3>
+              <h3 className="text-3xl text-foreground"><CountUp value={(summary?.gastoMensualTotal ?? 0) * rate} decimals={2} prefix={sym} /></h3>
             </div>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
               <DollarSign className="w-6 h-6" style={{ color: colors.primaryForeground }} />
@@ -92,11 +104,11 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item lift p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Suscripciones Activas</p>
-              <h3 className="text-3xl text-foreground">{summary?.totalSuscripcionesActivas ?? 0}</h3>
+              <h3 className="text-3xl text-foreground"><CountUp value={summary?.totalSuscripcionesActivas ?? 0} /></h3>
             </div>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
               <TrendingUp className="w-6 h-6" style={{ color: colors.primaryForeground }} />
@@ -104,7 +116,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item lift p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Próximo Pago</p>
@@ -121,11 +133,11 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item lift p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-secondary mb-1">Alertas Pendientes</p>
-              <h3 className="text-3xl text-foreground">{alertPayments.length}</h3>
+              <h3 className="text-3xl text-foreground"><CountUp value={alertPayments.length} /></h3>
             </div>
             <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.primaryAction }}>
               <AlertCircle className="w-6 h-6" style={{ color: colors.primaryForeground }} />
@@ -137,7 +149,7 @@ export function Dashboard() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart Section */}
-        <div className="lg:col-span-2 p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item lg:col-span-2 p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <h3 className="text-lg text-foreground mb-6">Resumen de Gastos Recurrentes</h3>
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -162,14 +174,14 @@ export function Dashboard() {
         </div>
 
         {/* Alerts Panel */}
-        <div className="p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
+        <div className="stagger-item lift p-6 rounded-lg border" style={{ backgroundColor: colors.bgSurface, borderColor: colors.border }}>
           <h3 className="text-lg text-foreground mb-6">Alertas de Pagos Próximos</h3>
           {alertPayments.length === 0 ? (
             <p className="text-secondary text-sm">Sin pagos próximos esta semana</p>
           ) : (
             <div className="space-y-4">
               {alertPayments.map((payment: any) => (
-                  <div key={payment.id} className="p-4 rounded-lg border" style={{ backgroundColor: colors.bgBase, borderColor: colors.border }}>
+                  <div key={payment.id} className="lift p-4 rounded-lg border" style={{ backgroundColor: colors.bgBase, borderColor: colors.border }}>
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="text-foreground">{payment.name}</h4>
                       <span
@@ -200,8 +212,7 @@ export function Dashboard() {
             {subscriptions.map((sub: any) => (
               <button
                 key={sub.id}
-                type="button"
-                className="p-6 rounded-lg border transition-all hover:scale-105 cursor-pointer text-left w-full"
+                className="stagger-item lift p-6 rounded-lg border cursor-pointer"
                 style={{ backgroundColor: colors.bgSurface, borderColor: 'rgba(255, 255, 255, 0.1)' }}
                 onClick={() => handleSubscriptionClick(sub)}
               >
