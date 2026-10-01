@@ -198,7 +198,7 @@ export function AccountSettings() {
               type="email"
               aria-label="Correo Electrónico"
               value={storedUser.correo || ''}
-              className="w-full px-4 py-3 rounded-lg outline-none text-foreground border opacity-60 cursor-not-allowed"
+              className="w-full px-4 py-3 rounded-lg outline-none text-foreground border opacity-70 cursor-not-allowed"
               style={inputStyle}
             />
           </div>
@@ -355,8 +355,8 @@ export function AccountSettings() {
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
               aria-label="Moneda predeterminada"
-              className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border"
-              style={{ ...inputStyle, colorScheme: theme === 'dark' ? 'dark' : 'light' }}
+              className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2 text-foreground border bg-surface"
+              style={{ backgroundColor: colors.bgBase, color: colors.textPrimary }}
             >
               <option value="USD">USD - Dólar Estadounidense</option>
               <option value="EUR">EUR - Euro</option>
